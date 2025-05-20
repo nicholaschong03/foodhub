@@ -7,10 +7,13 @@ function App() {
 
   const checkHealth = async () => {
     try {
-      const response = await axios.get('/api/health')
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+      console.log('Checking health at:', `${apiUrl}/api/health`)
+      const response = await axios.get(`${apiUrl}/api/health`)
       setHealthStatus(`API Status: ${response.data.ok ? '✅ Healthy' : '❌ Unhealthy'}`)
     } catch (error) {
-      setHealthStatus('❌ API Error')
+      console.error('Health check error:', error)
+      setHealthStatus(`❌ API Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 

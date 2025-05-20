@@ -14,7 +14,14 @@ const port = isDevelopment ? process.env.DEV_PORT : process.env.PROD_PORT;
 const mongoUri = isDevelopment ? process.env.DEV_MONGODB_URI : process.env.PROD_MONGODB_URI;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: isDevelopment
+    ? ['http://localhost:5173', 'http://127.0.0.1:5173'] // Development origins
+    : process.env.FRONTEND_URL, // Production origin
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Health check route
