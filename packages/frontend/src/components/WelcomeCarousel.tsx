@@ -12,7 +12,7 @@ interface Slide {
 
 const slides: Slide[] = [
   {
-    title: 'Welcome to Foodport',
+    title: 'Welcome to Foodhub',
     description: 'Discover and share the best food experiences',
     illustration: (
       <img
@@ -34,7 +34,7 @@ const slides: Slide[] = [
     ),
   },
   {
-    title: 'Scan food to Get Nutrition info',
+    title: 'Scan Food to Get Nutrition Info',
     description: 'Just snap a picture to reveal calories, nutrients, and dish insights with real-time food recognition',
     illustration: (
       <img
