@@ -1,52 +1,51 @@
-import { useState } from 'react'
-import axios from 'axios'
+import { useEffect, useState } from 'react'
+import SplashScreen from './components/SplashScreen'
+import WelcomeScreen from './components/WelcomeScreen'
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [healthStatus, setHealthStatus] = useState<string>('')
+  const [showSplash, setShowSplash] = useState(true)
+  const [splashFadeOut, setSplashFadeOut] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(false)
+  const [welcomeFadeIn, setWelcomeFadeIn] = useState(false)
 
-  const checkHealth = async () => {
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000'
-      console.log('Checking health at:', `${apiUrl}/api/health`)
-      const response = await axios.get(`${apiUrl}/api/health`)
-      setHealthStatus(`API Status: ${response.data.ok ? '✅ Healthy' : '❌ Unhealthy'}`)
-    } catch (error) {
-      console.error('Health check error:', error)
-      setHealthStatus(`❌ API Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSplashFadeOut(true)
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    if (splashFadeOut) {
+      const timeout = setTimeout(() => {
+        setShowSplash(false)
+        setShowWelcome(true)
+        setTimeout(() => setWelcomeFadeIn(true), 10)
+      }, 500)
+      return () => clearTimeout(timeout)
     }
+  }, [splashFadeOut])
+
+  const handleGetStarted = () => {
+    // TODO: Navigate to next onboarding/auth screen
+    alert('Get started clicked!')
   }
 
-  return (
-    <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
-      <div className="relative py-3 sm:max-w-xl sm:mx-auto">
-        <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
-          <div className="max-w-md mx-auto">
-            <div className="divide-y divide-gray-200">
-              <div className="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
-                <h1 className="text-3xl font-bold text-center mb-8">Welcome to FoodHub</h1>
-                <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors mr-4"
-                  onClick={() => setCount((count) => count + 1)}
-                >
-                  Count is {count}
-                </button>
-                <button
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-                  onClick={checkHealth}
-                >
-                  Check API Health
-                </button>
-                {healthStatus && (
-                  <p className="mt-4 text-center">{healthStatus}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+  if (showSplash) {
+    return (
+      <div className={`transition-opacity duration-500 ${splashFadeOut ? 'opacity-0' : 'opacity-100'}`}>
+        <SplashScreen />
       </div>
-    </div>
-  )
+    )
+  }
+  if (showWelcome) {
+    return (
+      <div className={`transition-opacity duration-500 ${welcomeFadeIn ? 'opacity-100' : 'opacity-0'}`}>
+        <WelcomeScreen onGetStarted={handleGetStarted} />
+      </div>
+    )
+  }
+  return null
 }
 
 export default App
