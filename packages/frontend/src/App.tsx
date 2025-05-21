@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import SplashScreen from './components/SplashScreen'
 import WelcomeScreen from './components/WelcomeScreen'
+import AuthScreen from './components/AuthScreen'
 
 function App() {
   const [showSplash, setShowSplash] = useState(true)
   const [splashFadeOut, setSplashFadeOut] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
   const [welcomeFadeIn, setWelcomeFadeIn] = useState(false)
+  const [showAuth, setShowAuth] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -27,8 +29,13 @@ function App() {
   }, [splashFadeOut])
 
   const handleGetStarted = () => {
-    // TODO: Navigate to next onboarding/auth screen
-    alert('Get started clicked!')
+    setShowWelcome(false)
+    setShowAuth(true)
+  }
+
+  const handleAuthSuccess = () => {
+    // TODO: Handle successful authentication
+    alert('Authenticated!')
   }
 
   if (showSplash) {
@@ -44,6 +51,9 @@ function App() {
         <WelcomeScreen onGetStarted={handleGetStarted} />
       </div>
     )
+  }
+  if (showAuth) {
+    return <AuthScreen onAuthSuccess={handleAuthSuccess} />
   }
   return null
 }
