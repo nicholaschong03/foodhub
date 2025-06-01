@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import welcomeImg from '../assets/welcome_carousel.png';
-import welcomeImg1 from '../assets/welcome_carousel1.png';
-import welcomeImg2 from '../assets/welcome_carousel2.png';
-import welcomeImg3 from '../assets/welcome_carousel3.png';
+import welcomeImg from '../../assets/welcome_carousel.png';
+import welcomeImg1 from '../../assets/welcome_carousel1.png';
+import welcomeImg2 from '../../assets/welcome_carousel2.png';
+import welcomeImg3 from '../../assets/welcome_carousel3.png';
 
 interface Slide {
   title: string;

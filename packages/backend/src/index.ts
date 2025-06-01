@@ -2,11 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import app from './app';
 
 // Load environment variables
 dotenv.config();
 
-const app = express();
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 // Use environment-specific variables
@@ -16,7 +16,7 @@ const mongoUri = isDevelopment ? process.env.DEV_MONGODB_URI : process.env.PROD_
 // Middleware
 app.use(cors({
   origin: isDevelopment
-    ? ['http://localhost:5173', 'http://127.0.0.1:5173'] // Development origins
+    ? ['http://localhost:5173', 'http://127.0.0.1:4000'] // Development origins
     : process.env.FRONTEND_URL, // Production origin
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

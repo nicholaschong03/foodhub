@@ -1,17 +1,38 @@
 import React, { useState } from 'react';
-import logoOrange from '../assets/logo_orange.png';
+import logoOrange from '../../assets/logo_orange.png';
 import CreateAccountModal from './CreateAccountModal';
+import axios from 'axios';
 
 const AuthScreen: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement authentication logic
-    onAuthSuccess();
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post('/api/auth/login', {
+        email,
+        password
+      });
+
+      // Store the token in localStorage
+      localStorage.setItem('token', response.data.token);
+      // Store user info if needed
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      // Call the success callback
+      onAuthSuccess();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleAuth = () => {
@@ -21,13 +42,19 @@ const AuthScreen: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) 
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen w-full bg-white px-6">
-      <div className="w-full max-w-md mx-auto bg-white rounded-lg p-8 shadow-md ">
-      <img src={logoOrange} alt="Foodhub Logo" className="w-48 h-48 object-contain mx-auto absolute left-1/2 -translate-x-1/2 -top-1 z-10" />        <h2 className="text-2xl font-bold text-center mb-2" style={{ fontFamily: 'Google Sans, sans-serif', fontWeight: 700 }}>
+      <div className="w-full max-w-md mx-auto bg-white rounded-lg p-8 shadow-md">
+        <img src={logoOrange} alt="Foodhub Logo" className="w-48 h-48 object-contain mx-auto absolute left-1/2 -translate-x-1/2 -top-1 z-10" />
+        <h2 className="text-2xl font-bold text-center mb-3 mt-20" style={{ fontFamily: 'Google Sans, sans-serif', fontWeight: 700 }}>
           {isLogin ? 'Login to Foodhub' : 'Sign up for Foodhub'}
         </h2>
         <p className="text-gray-600 text-center mb-6" style={{ fontFamily: 'Google Sans, sans-serif', fontWeight: 500 }}>
           Get started with your food discovery journey
         </p>
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
@@ -36,6 +63,7 @@ const AuthScreen: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) 
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
+            disabled={isLoading}
           />
           <input
             type="password"
@@ -44,13 +72,15 @@ const AuthScreen: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) 
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
+            disabled={isLoading}
           />
           <button
             type="submit"
-            className="w-full py-3 rounded-lg text-white font-semibold text-lg mt-2"
+            className="w-full py-3 rounded-lg text-white font-semibold text-lg mt-2 disabled:opacity-50"
             style={{ background: 'linear-gradient(90deg, #FF6A00 0%, #FF8C1A 100%)' }}
+            disabled={isLoading}
           >
-            {isLogin ? 'Login' : 'Sign up'}
+            {isLoading ? 'Logging in...' : (isLogin ? 'Login' : 'Sign up')}
           </button>
         </form>
         <div className="flex items-center my-6">
@@ -61,6 +91,7 @@ const AuthScreen: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) 
         <button
           className="w-full flex items-center justify-center gap-2 py-3 rounded-lg border border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 transition mb-2"
           onClick={handleGoogleAuth}
+          disabled={isLoading}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g clipPath="url(#clip0_17_40)">
@@ -81,6 +112,7 @@ const AuthScreen: React.FC<{ onAuthSuccess: () => void }> = ({ onAuthSuccess }) 
           <button
             className="text-orange-500 font-semibold hover:underline"
             onClick={() => setShowCreateModal(true)}
+            disabled={isLoading}
           >
             {"Don't have an account? Sign up"}
           </button>

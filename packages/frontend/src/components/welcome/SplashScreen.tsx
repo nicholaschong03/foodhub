@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from '../assets/splash_screen_logo.png';
+import logo from '../../assets/splash_screen_logo.png';
 
 const SplashScreen: React.FC = () => (
   <div className="flex flex-col items-center justify-center min-h-screen w-full" style={{ background: 'linear-gradient(180deg, #FF6A00 0%, #FF8C1A 100%)' }}>

@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom utilities for text clamping */
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 @font-face {
   font-family: 'Google Sans';
   src: url('./assets/fonts/GoogleSans-Bold.ttf') format('truetype');
