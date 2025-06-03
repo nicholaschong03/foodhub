@@ -17,6 +17,7 @@ router.get('/my-posts', authenticateToken, PostController.getPostsByUser);
 // Get single post details (public)
 router.get('/:id', authenticateToken, PostController.getOne);
 
-
+// Delete post by ID
+router.delete('/:id', authenticateToken, PostController.delete);
 
 export default router;

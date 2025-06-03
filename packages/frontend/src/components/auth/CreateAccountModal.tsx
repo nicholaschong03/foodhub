@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import logoOrange from '../../assets/logo_orange.png';
 import CustomPlanScreen from './CustomPlanScreen';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const genderOptions = ['Male', 'Female', 'Prefer not to say'];
 
-const CreateAccountModal: React.FC<{
-  onClose: () => void;
-  onNext: (data: { name: string; username: string; gender: string; email: string; password: string; dob: string; height: string; weight: string; goal: string; restrictions: string[]; cuisines: string[]; allergies: string[]; activityLevel: string }) => void;
-}> = ({ onClose, onNext }) => {
+const CreateAccountModal: React.FC = () => {
   const [step, setStep] = useState(1);
   // Step 1
   const [email, setEmail] = useState('');
@@ -115,6 +113,7 @@ const CreateAccountModal: React.FC<{
   const isStep8Disabled = !adventurousness;
   const [userId, setUserId] = useState<string | null>(null);
   const [showPlan, setShowPlan] = useState(false);
+  const navigate = useNavigate();
 
   // Validation
   const isEmailValid = emailRegex.test(email);
@@ -282,11 +281,11 @@ const CreateAccountModal: React.FC<{
         });
         const data = res.data;
         if (data.success && data.data && data.data._id) {
+          // Store user in localStorage
+          localStorage.setItem('user', JSON.stringify(data.data));
           setUserId(data.data._id);
-          setTimeout(() => {
-            setShowPlan(true);
-            setShowLoader(false);
-          }, 5000); // 5 seconds delay
+          setShowLoader(false);
+          navigate('/feed');
         } else {
           setShowLoader(false);
         }
@@ -313,7 +312,7 @@ const CreateAccountModal: React.FC<{
   }
 
   if (userId && showPlan) {
-    return <CustomPlanScreen userId={userId} onClose={onClose} />;
+    return <CustomPlanScreen userId={userId} />;
   }
 
   return (
@@ -322,7 +321,7 @@ const CreateAccountModal: React.FC<{
         {/* Close/back button */}
         <button
           className="absolute left-4 top-4 text-gray-400 hover:text-gray-600 text-2xl font-bold focus:outline-none"
-          onClick={step === 1 ? onClose : () => setStep(step - 1)}
+          onClick={step === 1 ? () => navigate(-1) : () => setStep(step - 1)}
           aria-label={step === 1 ? 'Close' : 'Back'}
         >
           &larr;

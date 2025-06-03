@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import logoOrange from '../../assets/logo_orange.png';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const macroColors = {
   Calories: 'text-orange-500',
@@ -41,9 +42,10 @@ function BMIScale({ bmi }: { bmi: number }) {
   );
 }
 
-export default function CustomPlanScreen({ userId, onClose }: { userId: string, onClose: () => void }) {
+export default function CustomPlanScreen({ userId, onClose }: { userId: string, onClose?: () => void }) {
   const [plan, setPlan] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios.get(`/api/users/${userId}/custom-plan`)
@@ -99,7 +101,7 @@ export default function CustomPlanScreen({ userId, onClose }: { userId: string, 
           <button
             className="w-full py-3 rounded-2xl text-white font-semibold text-lg"
             style={{ background: 'linear-gradient(90deg, #FF6A00 0%, #FF8C1A 100%)' }}
-            onClick={onClose}
+            onClick={onClose ? onClose : () => navigate('/feed')}
           >
             Let's get started!
           </button>

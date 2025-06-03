@@ -29,6 +29,7 @@ export default function EditProfileModal({ user, onClose }: { user: any, onClose
     profilePicture: user.profilePicture || '',
     name: user.name || '',
     gender: user.gender || '',
+    dob: user.dob ? user.dob.slice(0, 10) : '',
     height: user.height || 170,
     weight: user.weight || 70,
     goal: user.goal || '',
@@ -68,13 +69,35 @@ export default function EditProfileModal({ user, onClose }: { user: any, onClose
     setLoading(true);
     setError('');
     try {
-      await updateUserProfile(user._id, form);
+      let payload = { ...form };
+      // If profilePicture is a base64 string, convert to File
+      if (form.profilePicture && typeof form.profilePicture === 'string' && form.profilePicture.startsWith('data:image')) {
+        const file = dataURLtoFile(form.profilePicture, 'profile-picture.png');
+        payload.profilePicture = file;
+      }
+      if (payload.height !== '') payload.height = Number(payload.height);
+      if (payload.weight !== '') payload.weight = Number(payload.weight);
+      await updateUserProfile(user._id, payload);
       onClose();
     } catch (err: any) {
       setError('Failed to update profile');
     } finally {
       setLoading(false);
     }
+  }
+
+  // Helper to convert base64 to File
+  function dataURLtoFile(dataurl: string, filename: string): File {
+    const arr = dataurl.split(',');
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : '';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
   }
 
   function handleProfilePicChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -193,12 +216,16 @@ export default function EditProfileModal({ user, onClose }: { user: any, onClose
           {tab === 'Physical' && (
             <div>
               <div className="mb-3">
+                <label className="block text-gray-700 text-sm mb-1">Date of Birth</label>
+                <input type="date" className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" value={form.dob} onChange={e => handleChange('dob', e.target.value)} />
+              </div>
+              <div className="mb-3">
                 <label className="block text-gray-700 text-sm mb-1">Height (cm)</label>
-                <input type="number" min={100} max={250} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" value={form.height} onChange={e => handleChange('height', Number(e.target.value))} />
+                <input type="number" min={100} max={250} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" value={form.height} onChange={e => handleChange('height', e.target.value)} />
               </div>
               <div className="mb-3">
                 <label className="block text-gray-700 text-sm mb-1">Weight (kg)</label>
-                <input type="number" min={30} max={300} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" value={form.weight} onChange={e => handleChange('weight', Number(e.target.value))} />
+                <input type="number" min={30} max={300} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" value={form.weight} onChange={e => handleChange('weight', e.target.value)} />
               </div>
               <div className="mb-3">
                 <label className="block text-gray-700 text-sm mb-1">Goal</label>

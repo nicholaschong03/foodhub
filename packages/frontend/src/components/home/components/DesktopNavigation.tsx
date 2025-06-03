@@ -1,27 +1,31 @@
 import React, { useState } from 'react';
 import CreatePostModal from './CreatePostModal';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const DesktopNavigation: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const navigationItems = [
-    { icon: '🏠', label: 'Explore', active: true },
-    { icon: '➕', label: 'Post', active: false },
-    { icon: '🔔', label: 'Notifications', active: false },
-    { icon: '👤', label: 'Profile', active: false },
+    { icon: '🏠', label: 'Explore', path: '/feed' },
+    { icon: '➕', label: 'Post', path: '/post' }, // path for Post is just a placeholder
+    { icon: '🔔', label: 'Notifications', path: '/notifications' },
+    { icon: '👤', label: 'Profile', path: '/profile' },
   ];
 
   // More button is not active by default
   const moreButtonActive = false;
 
-  const handleNavClick = (label: string) => {
+  const handleNavClick = (label: string, path: string) => {
     if (label === 'Post') {
       setIsModalOpen(true);
     } else if (label === 'Profile') {
       navigate('/profile');
+    } else if (label === 'Explore') {
+      navigate('/feed');
+    } else {
+      navigate(path);
     }
-    // Add navigation logic for other buttons if needed
   };
 
   return (
@@ -30,20 +34,26 @@ const DesktopNavigation: React.FC = () => {
         <div className="p-4 pb-20">
           {/* Main Navigation */}
           <div className="space-y-2">
-            {navigationItems.map((item) => (
-              <button
-                key={item.label}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                  item.active
-                    ? 'bg-orange-50 text-orange-500'
-                    : 'text-gray-700 hover:bg-orange-50 hover:text-orange-500'
-                }`}
-                onClick={() => handleNavClick(item.label)}
-              >
-                <span className="text-lg">{item.icon}</span>
-                <span className="font-medium">{item.label}</span>
-              </button>
-            ))}
+            {navigationItems.map((item) => {
+              const isActive =
+                (item.label === 'Explore' && location.pathname === '/feed') ||
+                (item.label === 'Profile' && location.pathname.startsWith('/profile')) ||
+                (item.label === 'Notifications' && location.pathname.startsWith('/notifications'));
+              return (
+                <button
+                  key={item.label}
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    isActive
+                      ? 'bg-orange-50 text-orange-500'
+                      : 'text-gray-700 hover:bg-orange-50 hover:text-orange-500'
+                  }`}
+                  onClick={() => handleNavClick(item.label, item.path)}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
         {/* More Button at the bottom */}

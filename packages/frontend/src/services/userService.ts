@@ -11,6 +11,17 @@ export async function getUserProfile(userId: string) {
 }
 
 export async function updateUserProfile(userId: string, data: any) {
-    const res = await axios.put(`/api/users/${userId}`, data, { headers: getAuthHeaders() });
+    let payload = data;
+    let headers = getAuthHeaders();
+
+    if (data.profilePicture && data.profilePicture instanceof File) {
+        payload = new FormData();
+        Object.keys(data).forEach(key => {
+            payload.append(key, data[key]);
+        });
+        headers = getAuthHeaders();
+    }
+
+    const res = await axios.put(`/api/users/${userId}`, payload, { headers });
     return res.data.data;
 }

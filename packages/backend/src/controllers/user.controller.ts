@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
 import { UserSchema } from '../validators/user.validator';
 import { AuthRequest } from '../middlewares/auth.middleware';
+import { PostModel } from '../models/Posts';
 
 export class UserController {
     static async register(req: Request, res: Response) {
@@ -74,6 +75,22 @@ export class UserController {
         try {
             const userId = req.user?.userId;
             if (!userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
+            // Convert string fields to correct types if using FormData
+            if (typeof req.body.height === 'string') req.body.height = Number(req.body.height);
+            if (typeof req.body.weight === 'string') req.body.weight = Number(req.body.weight);
+            if (typeof req.body.adventurousness === 'string') req.body.adventurousness = Number(req.body.adventurousness);
+            if (typeof req.body.age === 'string') req.body.age = Number(req.body.age);
+            ['restrictions', 'cusines', 'allergies'].forEach(field => {
+                if (typeof req.body[field] === 'string') {
+                    try {
+                        req.body[field] = JSON.parse(req.body[field]);
+                    } catch {
+                        req.body[field] = [];
+                    }
+                }
+            });
+
             // Validate request body (allow partial updates, so use .partial())
             const validatedData = UserSchema.partial().parse(req.body);
 
@@ -82,6 +99,11 @@ export class UserController {
                 const bcrypt = require('bcryptjs');
                 const salt = await bcrypt.genSalt(10);
                 validatedData.password = await bcrypt.hash(validatedData.password, salt);
+            }
+
+            // If a new profile image was uploaded, set the profilePicture field
+            if (req.file && req.file.path) {
+                validatedData.profilePicture = req.file.path;
             }
 
             // Update user
@@ -105,8 +127,9 @@ export class UserController {
             if (!user) {
                 return res.status(404).json({ success: false, error: 'User not found' });
             }
+            const postCount = await PostModel.countDocuments({ authorId: userId });
             const { password, ...userResponse } = user.toObject();
-            res.json({ success: true, data: userResponse });
+            res.json({ success: true, data: { ...userResponse, postCount } });
         } catch (error) {
             res.status(500).json({ success: false, error: 'Error fetching user' });
         }

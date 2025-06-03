@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 interface PostDetailsModalProps {
   postId: string;
   onClose: () => void;
+  currentUserId?: string;
 }
 
 const dummyComments = [
@@ -16,7 +17,7 @@ const dummyComments = [
 const MODAL_WIDTH = 1000;
 const MODAL_HEIGHT = 700;
 
-const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose }) => {
+const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, currentUserId }) => {
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showMenuPanel, setShowMenuPanel] = useState(false);
@@ -73,7 +74,9 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose }) 
               <img src={post.authorId?.profilePicture || '/default-avatar.png'} alt={post.authorId?.username} className="w-10 h-10 rounded-full object-cover" />
               <span className="font-semibold text-gray-800 text-lg">{post.authorId?.username}</span>
             </div>
-            <button className="px-4 py-1 rounded-full bg-orange-500 text-white font-semibold text-base hover:bg-orange-600">Follow</button>
+            {(post.authorId?._id !== currentUserId && post.authorId !== currentUserId) && (
+              <button className="px-4 py-1 rounded-full bg-orange-500 text-white font-semibold text-base hover:bg-orange-600">Follow</button>
+            )}
           </div>
           {/* Panel Content */}
           {!showMenuPanel ? (
@@ -202,7 +205,9 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose }) 
                 <img src={post.authorId?.profilePicture || '/default-avatar.png'} alt={post.authorId?.username} className="w-14 h-14 rounded-full object-cover" />
                 <span className="font-semibold text-gray-800 text-xl">{post.authorId?.username}</span>
               </div>
-              <button className="px-6 py-2 rounded-full bg-orange-500 text-white font-semibold text-lg hover:bg-orange-600">Follow</button>
+              {(post.authorId?._id !== currentUserId && post.authorId !== currentUserId) && (
+                <button className="px-6 py-2 rounded-full bg-orange-500 text-white font-semibold text-lg hover:bg-orange-600">Follow</button>
+              )}
             </div>
             {/* Panel Content */}
             {!showMenuPanel ? (

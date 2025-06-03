@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { createPost, getPostsPaginated, getPostById, getPostsByUser } from '../services/post.service';
+import { createPost, getPostsPaginated, getPostById, getPostsByUser, deletePost } from '../services/post.service';
 import { AuthRequest } from '../middlewares/auth.middleware';
 
 export class PostController {
@@ -78,6 +78,24 @@ export class PostController {
         } catch (error) {
             console.error('Error fetching user posts:', error);
             res.status(500).json({ success: false, error: error });
+        }
+    }
+
+    static async delete(req: AuthRequest, res: Response) {
+        try {
+            const userId = req.user?.userId;
+            const postId = req.params.id;
+            if (!userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
+            await deletePost(postId, userId);
+            res.json({ success: true });
+        } catch (error) {
+            if (error instanceof Error && error.message === 'Unauthorized') {
+                return res.status(403).json({ success: false, error: 'You are not allowed to delete this post.' });
+            }
+            if (error instanceof Error && error.message === 'Post not found') {
+                return res.status(404).json({ success: false, error: 'Post not found.' });
+            }
+            res.status(500).json({ success: false, error: 'Error deleting post' });
         }
     }
 }

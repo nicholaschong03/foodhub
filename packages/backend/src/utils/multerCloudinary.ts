@@ -19,6 +19,6 @@ const profileImageStorage = new CloudinaryStorage({
     }),
   });
 
-export const uploadPostImage = multer({storage: postImageStorage});
-export const uploadProfileImage = multer({storage: profileImageStorage});
+export const uploadPostImage = multer({storage: postImageStorage, limits: {fileSize: 1024 * 1024 * 5}});
+export const uploadProfileImage = multer({storage: profileImageStorage, limits: {fileSize: 1024 * 1024 * 5}});
 

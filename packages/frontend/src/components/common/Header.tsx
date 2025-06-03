@@ -6,10 +6,13 @@ const Header: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Simulate getting user info (replace with real user context or prop in production)
-  const user = {
-    profilePicture: localStorage.getItem('profilePicture') || '',
-    username: localStorage.getItem('username') || 'User',
-  };
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  })();
 
   return (
     <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-20 md:left-64 h-16">
@@ -49,6 +52,7 @@ const Header: React.FC = () => {
             className="hidden md:block text-gray-600 hover:text-red-500"
             onClick={() => {
               localStorage.removeItem('token');
+              localStorage.removeItem('user');
               window.location.reload();
             }}
           >

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
-import { uploadPostImage } from '../utils/multerCloudinary';
+import { uploadPostImage, uploadProfileImage } from '../utils/multerCloudinary';
 
 const router = Router();
 
@@ -18,7 +18,7 @@ router.get('/check-email', UserController.checkEmail);
 router.get('/:id/custom-plan', UserController.getCustomPlan);
 
 // Update user profile
-router.put('/:id', authenticateToken, UserController.updateProfile);
+router.put('/:id', authenticateToken, uploadProfileImage.single('profilePicture'), UserController.updateProfile);
 
 // Get user profile by id
 router.get('/:id', authenticateToken, UserController.getUserById);

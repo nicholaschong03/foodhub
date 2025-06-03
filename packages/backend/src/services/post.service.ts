@@ -75,3 +75,11 @@ export async function getPostsByUser(userId: string, page: number = 1, limit: nu
         totalPages: Math.ceil(total / limit)
     };
 }
+
+export async function deletePost(postId: string, userId: string) {
+    const post = await PostModel.findById(postId);
+    if (!post) throw new Error('Post not found');
+    if (post.authorId.toString() !== userId) throw new Error('Unauthorized');
+    await PostModel.deleteOne({ _id: postId });
+    return true;
+}

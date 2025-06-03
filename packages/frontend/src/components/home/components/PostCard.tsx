@@ -1,5 +1,6 @@
 import React from 'react';
 import DefaultProfileIcon from '../../common/DefaultProfileIcon';
+import { FaTrash } from 'react-icons/fa';
 
 interface Author {
   name: string;
@@ -17,11 +18,16 @@ interface Post {
 interface PostCardProps {
   post: Post;
   onClick?: () => void;
+  showDelete?: boolean;
+  onDelete?: () => void;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, onClick }) => {
+const PostCard: React.FC<PostCardProps> = ({ post, onClick, showDelete, onDelete }) => {
   return (
-    <div onClick={onClick} className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+    <div
+      onClick={onClick}
+      className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group relative"
+    >
       {/* Post Image */}
       <div className="relative aspect-[3/4] overflow-hidden">
         <img
@@ -29,12 +35,16 @@ const PostCard: React.FC<PostCardProps> = ({ post, onClick }) => {
           alt={post.title}
           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
         />
-        {/* Play button overlay for video posts
-        <div className="absolute top-2 right-2">
-          <svg className="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
-        </div> */}
+        {/* Delete button (top-right) */}
+        {showDelete && (
+          <button
+            className="absolute top-2 right-2 z-10 p-1 bg-white rounded-full shadow hover:bg-orange-100 text-gray-500 hover:text-orange-600 opacity-0 group-hover:opacity-100 transition"
+            onClick={e => { e.stopPropagation(); onDelete && onDelete(); }}
+            title="Delete Post"
+          >
+            <FaTrash size={16} />
+          </button>
+        )}
       </div>
 
       {/* Post Content */}
