@@ -3,6 +3,8 @@ import { UserService } from '../services/user.service';
 import { UserSchema } from '../validators/user.validator';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { PostModel } from '../models/Posts';
+import { UserModel } from '../models/User';
+import { followUser, unfollowUser, isFollowing, getFollowers, getFollowing } from '../services/user.service';
 
 export class UserController {
     static async register(req: Request, res: Response) {
@@ -132,6 +134,84 @@ export class UserController {
             res.json({ success: true, data: { ...userResponse, postCount } });
         } catch (error) {
             res.status(500).json({ success: false, error: 'Error fetching user' });
+        }
+    }
+
+    static async getUserByUsername(req: Request, res: Response) {
+        try {
+            const { username } = req.params;
+            const user = await UserService.getUserByUsername(username);
+            if (!user) {
+                return res.status(404).json({ success: false, error: 'User not found' });
+            }
+            const postCount = await PostModel.countDocuments({ authorId: user._id });
+            const { password, ...userResponse } = user.toObject();
+            res.json({ success: true, data: { ...userResponse, postCount } });
+        } catch (error) {
+            res.status(500).json({ success: false, error: 'Error fetching user by username' });
+        }
+    }
+
+    static async follow(req: AuthRequest, res: Response) {
+        try {
+            const followerId = req.user?.userId;
+            const { userId } = req.params;
+            if (!followerId) return res.status(401).json({ success: false, error: 'Unauthorized' });
+            if (!userId) return res.status(400).json({ success: false, error: 'Missing userId' });
+            await followUser(followerId, userId);
+            res.json({ success: true });
+        } catch (error: any) {
+            res.status(400).json({ success: false, error: error.message });
+        }
+    }
+
+    static async unfollow(req: AuthRequest, res: Response) {
+        try {
+            const followerId = req.user?.userId;
+            const { userId } = req.params;
+            if (!followerId) return res.status(401).json({ success: false, error: 'Unauthorized' });
+            if (!userId) return res.status(400).json({ success: false, error: 'Missing userId' });
+            await unfollowUser(followerId, userId);
+            res.json({ success: true });
+        } catch (error: any) {
+            res.status(400).json({ success: false, error: error.message });
+        }
+    }
+
+    static async isFollowing(req: AuthRequest, res: Response) {
+        try {
+            const followerId = req.user?.userId;
+            const { userId } = req.params;
+            if (!followerId) return res.status(401).json({ success: false, error: 'Unauthorized' });
+            if (!userId) return res.status(400).json({ success: false, error: 'Missing userId' });
+            const following = await isFollowing(followerId, userId);
+            res.json({ success: true, following });
+        } catch (error: any) {
+            res.status(400).json({ success: false, error: error.message });
+        }
+    }
+
+    static async getFollowers(req: Request, res: Response) {
+        try {
+            const { userId } = req.params;
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const result = await getFollowers(userId, page, limit);
+            res.json({ success: true, ...result });
+        } catch (error: any) {
+            res.status(400).json({ success: false, error: error.message });
+        }
+    }
+
+    static async getFollowing(req: Request, res: Response) {
+        try {
+            const { userId } = req.params;
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const result = await getFollowing(userId, page, limit);
+            res.json({ success: true, ...result });
+        } catch (error: any) {
+            res.status(400).json({ success: false, error: error.message });
         }
     }
 }

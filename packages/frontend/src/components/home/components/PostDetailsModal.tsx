@@ -1,12 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { getPostDetails } from '../../../services/postService';
-import { FaUtensils, FaRegCommentDots, FaRegHeart, FaRegBookmark, FaMapMarkerAlt, FaRegFileAlt, FaPaperPlane } from 'react-icons/fa';
+import { getPostDetails, likePost, unlikePost, hasLikedPost, savePost, unsavePost, hasSavedPost } from '../../../services/postService';
+import { FaUtensils, FaRegCommentDots, FaRegHeart, FaHeart, FaRegBookmark, FaBookmark, FaMapMarkerAlt, FaRegFileAlt, FaPaperPlane } from 'react-icons/fa';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { followUser, unfollowUser, isFollowing as checkIsFollowing } from '../../../services/userService';
+
+interface Post {
+  id: string;
+  title: string;
+  description: string;
+  postPictureUrl: string;
+  likesCount: number;
+  savesCount: number;
+  commentsCount: number;
+  authorId: {
+    _id?: string;
+    username: string;
+    profilePicture?: string;
+  };
+  dietaryTags?: string[];
+  menuItemName: string;
+  menuItemPrice: number;
+  foodRating: number;
+  restaurantName: string;
+  foodCategory: string;
+  cusineType: string;
+  restaurantLocation?: {
+    coordinates: [number, number];
+  };
+}
 
 interface PostDetailsModalProps {
   postId: string;
   onClose: () => void;
   currentUserId?: string;
+  onLikeUpdate?: (postId: string, likesCount: number, liked: boolean) => void;
 }
 
 const dummyComments = [
@@ -17,18 +45,118 @@ const dummyComments = [
 const MODAL_WIDTH = 1000;
 const MODAL_HEIGHT = 700;
 
-const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, currentUserId }) => {
-  const [post, setPost] = useState<any>(null);
+const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, currentUserId, onLikeUpdate }) => {
+  const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [showMenuPanel, setShowMenuPanel] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
-    getPostDetails(postId).then((data) => {
-      setPost(data);
+    Promise.all([
+      getPostDetails(postId),
+      hasLikedPost(postId),
+      hasSavedPost(postId)
+    ]).then(([postData, hasLiked, hasSaved]) => {
+      setPost(postData);
+      setIsLiked(hasLiked);
+      setIsSaved(hasSaved);
       setLoading(false);
     });
   }, [postId]);
+
+  // Check if current user is following the post author
+  useEffect(() => {
+    const checkFollow = async () => {
+      if (post && post.authorId && post.authorId._id && post.authorId._id !== currentUserId) {
+        setFollowLoading(true);
+        try {
+          const following = await checkIsFollowing(post.authorId._id);
+          setIsFollowing(following);
+        } catch {
+          setIsFollowing(false);
+        } finally {
+          setFollowLoading(false);
+        }
+      }
+    };
+    checkFollow();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post, currentUserId]);
+
+  const handleLike = async () => {
+    if (!currentUserId || isLiking || !post) return;
+
+    setIsLiking(true);
+    try {
+      let newLikesCount = post.likesCount;
+      let liked = isLiked;
+      if (isLiked) {
+        await unlikePost(postId);
+        newLikesCount = post.likesCount - 1;
+        liked = false;
+        setPost(prev => prev ? { ...prev, likesCount: newLikesCount } : null);
+      } else {
+        await likePost(postId);
+        newLikesCount = post.likesCount + 1;
+        liked = true;
+        setPost(prev => prev ? { ...prev, likesCount: newLikesCount } : null);
+      }
+      setIsLiked(liked);
+      // Notify parent (Feed) to update the feed state
+      if (onLikeUpdate) onLikeUpdate(postId, newLikesCount, liked);
+    } catch (error) {
+      console.error('Failed to update like:', error);
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!currentUserId || isSaving || !post) return;
+    setIsSaving(true);
+    try {
+      if (isSaved) {
+        await unsavePost(postId);
+        setIsSaved(false);
+      } else {
+        await savePost(postId);
+        setIsSaved(true);
+      }
+    } catch (error) {
+      console.error('Failed to update save:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!post || !post.authorId || !post.authorId._id) return;
+    setFollowLoading(true);
+    try {
+      await followUser(post.authorId._id);
+      setIsFollowing(true);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    if (!post || !post.authorId || !post.authorId._id) return;
+    setFollowLoading(true);
+    try {
+      await unfollowUser(post.authorId._id);
+      setIsFollowing(false);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   if (loading || !post) {
     return (
@@ -42,6 +170,9 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
   const mapsUrl = post.restaurantLocation
     ? `https://www.google.com/maps?q=${post.restaurantLocation.coordinates[1]},${post.restaurantLocation.coordinates[0]}`
     : '#';
+
+  // Update the author comparison
+  const isAuthor = post?.authorId?._id === currentUserId;
 
   // Mobile layout
   const mobileContent = (
@@ -70,12 +201,28 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
         <div className="flex-1 flex flex-col p-4 overflow-y-auto text-base">
           {/* User Info & Follow */}
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <img src={post.authorId?.profilePicture || '/default-avatar.png'} alt={post.authorId?.username} className="w-10 h-10 rounded-full object-cover" />
-              <span className="font-semibold text-gray-800 text-lg">{post.authorId?.username}</span>
+            <div className="flex items-center gap-3 cursor-pointer group/profile hover:text-orange-500" onClick={() => navigate(`/profile/${post.authorId?.username}`)}>
+              <img src={post.authorId?.profilePicture || '/default-avatar.png'} alt={post.authorId?.username} className="w-10 h-10 rounded-full object-cover ring-0 group-hover/profile:ring-2 group-hover/profile:ring-orange-400 transition" />
+              <span className="font-semibold text-gray-800 text-lg group-hover/profile:underline group-hover/profile:text-orange-500 transition">{post.authorId?.username}</span>
             </div>
-            {(post.authorId?._id !== currentUserId && post.authorId !== currentUserId) && (
-              <button className="px-4 py-1 rounded-full bg-orange-500 text-white font-semibold text-base hover:bg-orange-600">Follow</button>
+            {!isAuthor && (
+              isFollowing ? (
+                <button
+                  className="px-4 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-base hover:bg-gray-300 transition h-9 text-sm"
+                  onClick={handleUnfollow}
+                  disabled={followLoading}
+                >
+                  {followLoading ? 'Unfollowing...' : 'Unfollow'}
+                </button>
+              ) : (
+                <button
+                  className="px-4 py-1 rounded-full bg-orange-500 text-white font-semibold text-base hover:bg-orange-600 transition h-9 text-sm"
+                  onClick={handleFollow}
+                  disabled={followLoading}
+                >
+                  {followLoading ? 'Following...' : 'Follow'}
+                </button>
+              )
             )}
           </div>
           {/* Panel Content */}
@@ -90,12 +237,31 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
               </div>
               {/* Like/Save/Comment counts */}
               <div className="flex items-center gap-4 mb-4 text-lg">
-                <button className="flex items-center gap-1 text-gray-500 hover:text-orange-500">
-                  <FaRegHeart /> {post.likesCount}
-                </button>
-                <button className="flex items-center gap-1 text-gray-500 hover:text-orange-500">
-                  <FaRegBookmark /> {post.savesCount}
-                </button>
+                <motion.button
+                  className="flex items-center gap-2 text-gray-500 hover:text-red-500"
+                  onClick={handleLike}
+                  whileTap={{ scale: 0.9 }}
+                  animate={{
+                    color: isLiked ? '#ef4444' : '#6b7280',
+                    scale: isLiked ? [1, 1.2, 1] : 1
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {isLiked ? <FaHeart /> : <FaRegHeart />}
+                  <span>{post.likesCount}</span>
+                </motion.button>
+                <motion.button
+                  className="flex items-center gap-2 focus:outline-none"
+                  onClick={handleSave}
+                  whileTap={{ scale: 0.9 }}
+                  animate={{
+                    color: isSaved ? '#2563eb' : '#9ca3af',
+                    scale: isSaved ? [1, 1.2, 1] : 1
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {isSaved ? <FaBookmark /> : <FaRegBookmark />}
+                </motion.button>
                 <span className="flex items-center gap-1 text-gray-500">
                   <FaRegCommentDots /> {post.commentsCount}
                 </span>
@@ -132,7 +298,7 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
               <div className="mb-2">
                 <div className="font-semibold text-gray-800 text-base">Food Rating</div>
                 <div className="flex gap-1 text-lg">
-                  {[1,2,3,4,5].map((n) => (
+                  {[1, 2, 3, 4, 5].map((n) => (
                     <span key={n} className={n <= post.foodRating ? 'text-orange-500' : 'text-gray-300'}>★</span>
                   ))}
                 </div>
@@ -201,12 +367,28 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
           <div className="flex-1 flex flex-col p-10 relative min-w-[380px] max-w-[600px] h-full overflow-y-auto text-lg">
             {/* User Info & Follow */}
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <img src={post.authorId?.profilePicture || '/default-avatar.png'} alt={post.authorId?.username} className="w-14 h-14 rounded-full object-cover" />
-                <span className="font-semibold text-gray-800 text-xl">{post.authorId?.username}</span>
+              <div className="flex items-center gap-4 cursor-pointer group/profile hover:text-orange-500" onClick={() => navigate(`/profile/${post.authorId?.username}`)}>
+                <img src={post.authorId?.profilePicture || '/default-avatar.png'} alt={post.authorId?.username} className="w-14 h-14 rounded-full object-cover ring-0 group-hover/profile:ring-2 group-hover/profile:ring-orange-400 transition" />
+                <span className="font-semibold text-gray-800 text-xl group-hover/profile:underline group-hover/profile:text-orange-500 transition">{post.authorId?.username}</span>
               </div>
-              {(post.authorId?._id !== currentUserId && post.authorId !== currentUserId) && (
-                <button className="px-6 py-2 rounded-full bg-orange-500 text-white font-semibold text-lg hover:bg-orange-600">Follow</button>
+              {!isAuthor && (
+                isFollowing ? (
+                  <button
+                    className="px-6 py-2 rounded-full bg-gray-200 text-gray-700 font-semibold text-lg hover:bg-gray-300 transition h-9 text-sm"
+                    onClick={handleUnfollow}
+                    disabled={followLoading}
+                  >
+                    {followLoading ? 'Unfollowing...' : 'Unfollow'}
+                  </button>
+                ) : (
+                  <button
+                    className="px-6 py-2 rounded-full bg-orange-500 text-white font-semibold text-lg hover:bg-orange-600 transition h-9 text-sm"
+                    onClick={handleFollow}
+                    disabled={followLoading}
+                  >
+                    {followLoading ? 'Following...' : 'Follow'}
+                  </button>
+                )
               )}
             </div>
             {/* Panel Content */}
@@ -221,12 +403,31 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
                 </div>
                 {/* Like/Save/Comment counts */}
                 <div className="flex items-center gap-6 mb-6 text-xl">
-                  <button className="flex items-center gap-2 text-gray-500 hover:text-orange-500">
-                    <FaRegHeart /> {post.likesCount}
-                  </button>
-                  <button className="flex items-center gap-2 text-gray-500 hover:text-orange-500">
-                    <FaRegBookmark /> {post.savesCount}
-                  </button>
+                  <motion.button
+                    className="flex items-center gap-2 text-gray-500 hover:text-red-500"
+                    onClick={handleLike}
+                    whileTap={{ scale: 0.9 }}
+                    animate={{
+                      color: isLiked ? '#ef4444' : '#6b7280',
+                      scale: isLiked ? [1, 1.2, 1] : 1
+                    }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {isLiked ? <FaHeart /> : <FaRegHeart />}
+                    <span>{post.likesCount}</span>
+                  </motion.button>
+                  <motion.button
+                    className="flex items-center gap-2 focus:outline-none"
+                    onClick={handleSave}
+                    whileTap={{ scale: 0.9 }}
+                    animate={{
+                      color: isSaved ? '#2563eb' : '#9ca3af',
+                      scale: isSaved ? [1, 1.2, 1] : 1
+                    }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {isSaved ? <FaBookmark /> : <FaRegBookmark />}
+                  </motion.button>
                   <span className="flex items-center gap-2 text-gray-500">
                     <FaRegCommentDots /> {post.commentsCount}
                   </span>
@@ -263,7 +464,7 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
                 <div className="mb-4">
                   <div className="font-semibold text-gray-800 text-lg">Food Rating</div>
                   <div className="flex gap-1 text-2xl">
-                    {[1,2,3,4,5].map((n) => (
+                    {[1, 2, 3, 4, 5].map((n) => (
                       <span key={n} className={n <= post.foodRating ? 'text-orange-500' : 'text-gray-300'}>★</span>
                     ))}
                   </div>

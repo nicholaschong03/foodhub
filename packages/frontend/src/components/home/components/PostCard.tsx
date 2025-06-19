@@ -1,10 +1,13 @@
 import React from 'react';
 import DefaultProfileIcon from '../../common/DefaultProfileIcon';
-import { FaTrash } from 'react-icons/fa';
+import { FaTrash, FaHeart, FaRegHeart } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { MapPinIcon } from '@heroicons/react/24/outline';
 
 interface Author {
-  name: string;
   avatar: string;
+  id?: string;
+  username?: string;
 }
 
 interface Post {
@@ -13,6 +16,10 @@ interface Post {
   imageUrl: string;
   author: Author;
   likes: number;
+  liked: boolean;
+  saved: boolean;
+  restaurant?: { name: string; location?: any };
+  distance?: number;
 }
 
 interface PostCardProps {
@@ -20,9 +27,28 @@ interface PostCardProps {
   onClick?: () => void;
   showDelete?: boolean;
   onDelete?: () => void;
+  onLikeToggle?: (postId: string, likesCount: number, liked: boolean) => void;
+  showDistance?: boolean;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, onClick, showDelete, onDelete }) => {
+const PostCard: React.FC<PostCardProps> = ({ post, onClick, showDelete, onDelete, onLikeToggle, showDistance }) => {
+  const navigate = useNavigate();
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onLikeToggle) {
+      onLikeToggle(post.id, post.liked ? post.likes - 1 : post.likes + 1, !post.liked);
+    }
+  };
+  const handleProfileClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Use post.username for navigation
+    const username = post.author?.username;
+    console.log('Clicked author:', post.author);
+    if (username) {
+      navigate(`/profile/${username}`);
+    }
+  };
+
   return (
     <div
       onClick={onClick}
@@ -57,30 +83,49 @@ const PostCard: React.FC<PostCardProps> = ({ post, onClick, showDelete, onDelete
         {/* Author Info */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
+            <span
+              onClick={handleProfileClick}
+              className="flex items-center space-x-1 cursor-pointer group/profile hover:text-orange-500"
+              title={post.author.username}
+            >
             {post.author.avatar ? (
               <img
                 src={post.author.avatar}
-                alt={post.author.name}
-                className="w-5 h-5 rounded-full object-cover"
+                  alt={post.author.username}
+                  className="w-5 h-5 rounded-full object-cover ring-0 group-hover/profile:ring-2 group-hover/profile:ring-orange-400 transition"
               />
             ) : (
               <span className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center">
                 <DefaultProfileIcon className="text-orange-400" size={14} />
               </span>
             )}
-            <span className="text-xs text-gray-600 truncate">
-              {post.author.name}
+              <span className="text-xs text-gray-600 truncate group-hover/profile:underline group-hover/profile:text-orange-500 transition">
+                {post.author.username}
+              </span>
             </span>
           </div>
 
           {/* Likes */}
           <div className="flex items-center space-x-1">
-            <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
+            <button onClick={handleLike} className="focus:outline-none">
+              {post.liked ? <FaHeart className="text-red-500" /> : <FaRegHeart className="text-gray-400" />}
+            </button>
             <span className="text-xs text-gray-500">{post.likes}</span>
           </div>
         </div>
+
+        {/* Restaurant Info: Only show in Nearby tab */}
+        {showDistance && post.restaurant && (
+          <div className="flex items-center mt-2 text-sm text-gray-500">
+            <MapPinIcon className="w-4 h-4 mr-1 text-orange-500" />
+            <span>{post.restaurant.name}</span>
+            {post.distance !== undefined && (
+              <span className="ml-2 text-xs text-gray-500">
+                ({post.distance} km)
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

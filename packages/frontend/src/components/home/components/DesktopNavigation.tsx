@@ -7,9 +7,9 @@ const DesktopNavigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const navigationItems = [
-    { icon: '🏠', label: 'Explore', path: '/feed' },
+    { icon: '🏠', label: 'Feed', path: '/feed' },
     { icon: '➕', label: 'Post', path: '/post' }, // path for Post is just a placeholder
-    { icon: '🔔', label: 'Notifications', path: '/notifications' },
+    { icon: '📍', label: 'Explore', path: '/explore' },
     { icon: '👤', label: 'Profile', path: '/profile' },
   ];
 
@@ -21,8 +21,10 @@ const DesktopNavigation: React.FC = () => {
       setIsModalOpen(true);
     } else if (label === 'Profile') {
       navigate('/profile');
-    } else if (label === 'Explore') {
+    } else if (label === 'Feed') {
       navigate('/feed');
+    } else if (label === 'Explore') {
+      navigate('/explore');
     } else {
       navigate(path);
     }
@@ -36,9 +38,9 @@ const DesktopNavigation: React.FC = () => {
           <div className="space-y-2">
             {navigationItems.map((item) => {
               const isActive =
-                (item.label === 'Explore' && location.pathname === '/feed') ||
-                (item.label === 'Profile' && location.pathname.startsWith('/profile')) ||
-                (item.label === 'Notifications' && location.pathname.startsWith('/notifications'));
+                (item.label === 'Feed' && location.pathname === '/feed') ||
+                (item.label === 'Profile' && location.pathname === '/profile') ||
+                (item.label === 'Explore' && location.pathname === '/explore');
               return (
                 <button
                   key={item.label}

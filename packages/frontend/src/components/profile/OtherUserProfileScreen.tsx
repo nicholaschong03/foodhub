@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { getUserProfile, getFollowers, getFollowing } from '../../services/userService';
-import { getMyPosts, likePost, unlikePost, getLikedPosts, getSavedPosts } from '../../services/postService';
+import { getUserProfile, getUserProfileByUsername, getFollowers, getFollowing } from '../../services/userService';
+import { getPostsByUsername, getLikedPostsByUsername, getSavedPostsByUsername, likePost, unlikePost } from '../../services/postService';
+import { followUser, unfollowUser, isFollowing as checkIsFollowing } from '../../services/userService';
 import CustomPlanScreen from '../auth/CustomPlanScreen';
-import EditProfileModal from './EditProfileModal';
 import PostCard from '../home/components/PostCard';
 import logoOrange from '../../assets/logo_orange.png';
 import DefaultProfileIcon from '../common/DefaultProfileIcon';
 import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import PostDetailsModal from '../home/components/PostDetailsModal';
-import { FaTrash } from 'react-icons/fa';
+import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../common/Header';
-import { useNavigate } from 'react-router-dom';
 
 const TABS = ['Posts', 'Saved', 'Liked', 'Health'];
 
@@ -39,107 +38,84 @@ function BMIScale({ bmi }: { bmi: number }) {
   );
 }
 
-function MacroCard({ label, value, unit, color }: { label: string, value: number, unit: string, color: string }) {
-  return (
-    <div className="bg-white rounded-xl p-4 flex flex-col items-center shadow-sm">
-      <div className={`text-2xl mb-1 ${color}`}>
-        {label === 'Calories' ? '🔥' : label === 'Carbs' ? '🌾' : label === 'Protein' ? '🍗' : '🥑'}
-      </div>
-      <div className="text-gray-700 text-sm">{label}</div>
-      <div className="font-bold text-xl text-gray-900">
-        {value}
-        <span className="text-sm font-normal text-gray-500">{unit}</span>
-      </div>
-    </div>
-  );
-}
-
-const macroColors = {
-  Calories: 'text-orange-500',
-  Carbs: 'text-orange-400',
-  Protein: 'text-red-400',
-  Fats: 'text-blue-400',
-};
-
-// Helper to calculate age from dob
-function calculateAge(dob: string | Date | undefined): number | null {
-  if (!dob) return null;
-  const birthDate = new Date(dob);
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return age;
-}
-
-export default function UserProfileScreen() {
-  const [userId, setUserId] = useState<string | null>(null);
+export default function OtherUserProfileScreen() {
+  const { username } = useParams<{ username: string }>();
+  const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [tab, setTab] = useState('Posts');
-  const [showEdit, setShowEdit] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const [posts, setPosts] = useState<any[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [customPlan, setCustomPlan] = useState<any>(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [postToDelete, setPostToDelete] = useState<any>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [showListModal, setShowListModal] = useState<'followers' | 'following' | null>(null);
   const [listUsers, setListUsers] = useState<any[]>([]);
   const [listLoading, setListLoading] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      setUserId(user.id || user._id || null);
-    } catch {
-      setUserId(null);
+    if (username) {
+      getUserProfileByUsername(username).then(setUser);
     }
-  }, []);
+  }, [username, refresh]);
 
   useEffect(() => {
-    if (userId) {
-      getUserProfile(userId).then(setUser);
-      // Fetch follower/following counts
-      getFollowers(userId).then(res => setFollowersCount(res.total || 0));
-      getFollowing(userId).then(res => setFollowingCount(res.total || 0));
-    }
-  }, [userId, refresh]);
-
-  useEffect(() => {
-    if (userId) {
+    if (username) {
       setLoadingPosts(true);
       setPage(1);
       setHasMore(true);
       loadPosts();
     }
-  }, [tab, refresh, userId]);
+  }, [tab, refresh, username]);
 
   useEffect(() => {
-    if (tab === 'Health' && userId) {
+    if (tab === 'Health' && user && user._id) {
       setLoadingPlan(true);
-      axios.get(`/api/users/${userId}/custom-plan`).then(res => {
+      console.log('Custom plan API call userId:', user._id, 'username:', username);
+      axios.get(`/api/users/${user._id}/custom-plan`).then(res => {
         setCustomPlan(res.data.data);
         setLoadingPlan(false);
       }).catch(() => setLoadingPlan(false));
     }
-  }, [tab, userId]);
+  }, [tab, user]);
+
+  useEffect(() => {
+    if (user && user._id) {
+      getFollowers(user._id).then(res => setFollowersCount(res.total || 0));
+      getFollowing(user._id).then(res => setFollowingCount(res.total || 0));
+    }
+  }, [user]);
+
+  // Check if current user is following this user
+  useEffect(() => {
+    const checkFollow = async () => {
+      if (user && user._id) {
+        setFollowLoading(true);
+        try {
+          const following = await checkIsFollowing(user._id);
+          setIsFollowing(following);
+        } catch {
+          setIsFollowing(false);
+        } finally {
+          setFollowLoading(false);
+        }
+      }
+    };
+    checkFollow();
+  }, [user]);
 
   // Fetch list when modal is opened
   useEffect(() => {
-    if (!showListModal || !userId) return;
+    if (!showListModal || !user || !user._id) return;
     setListLoading(true);
     const fetchList = showListModal === 'followers' ? getFollowers : getFollowing;
-    fetchList(userId).then(res => {
-      // Explicitly map to the correct user object
+    fetchList(user._id).then(res => {
       if (showListModal === 'followers') {
         setListUsers((res.followers || []).map((item: any) => item.follower));
       } else {
@@ -147,27 +123,25 @@ export default function UserProfileScreen() {
       }
       setListLoading(false);
     });
-  }, [showListModal, userId]);
+  }, [showListModal, user]);
 
   const loadPosts = async () => {
+    if (!username) return;
     try {
       let data;
       switch (tab) {
         case 'Posts':
-          data = await getMyPosts(page, 10);
+          data = await getPostsByUsername(username, page, 10);
           break;
         case 'Liked':
-          data = await getLikedPosts(page, 10);
+          data = await getLikedPostsByUsername(username, page, 10);
           break;
         case 'Saved':
-          data = await getSavedPosts(page, 10);
+          data = await getSavedPostsByUsername(username, page, 10);
           break;
         default:
           data = { posts: [], total: 0, page: 1, pageSize: 10, totalPages: 0 };
       }
-
-      console.log('Fetching posts:', data);
-
       if (page === 1) {
         setPosts(data.posts || []);
       } else {
@@ -176,7 +150,6 @@ export default function UserProfileScreen() {
       setHasMore(page < data.totalPages);
       setLoadingPosts(false);
     } catch (error) {
-      console.error('Error loading posts:', error);
       setLoadingPosts(false);
     }
   };
@@ -188,12 +161,34 @@ export default function UserProfileScreen() {
     }
   };
 
-  // Add like handler
+  const handleFollow = async () => {
+    if (!user || !user._id) return;
+    setFollowLoading(true);
+    try {
+      await followUser(user._id);
+      setIsFollowing(true);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    if (!user || !user._id) return;
+    setFollowLoading(true);
+    try {
+      await unfollowUser(user._id);
+      setIsFollowing(false);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  // Like handler for cards and modal
   const handleUpdatePostLike = async (postId: string, likesCount: number, liked: boolean) => {
     setPosts(prevPosts =>
       prevPosts.map(post =>
         (post._id || post.id) === postId
-          ? { ...post, likesCount: likesCount, liked }
+          ? { ...post, likes: likesCount, liked }
           : post
       )
     );
@@ -208,8 +203,8 @@ export default function UserProfileScreen() {
     }
   };
 
-  if (!userId) {
-    return <div className="text-center text-red-500">User not found. Please log in again.</div>;
+  if (!username) {
+    return <div className="text-center text-red-500">User not found.</div>;
   }
 
   if (!user) {
@@ -243,17 +238,30 @@ export default function UserProfileScreen() {
             <div className="text-gray-500 text-lg">@{user.username}</div>
           </div>
         </div>
-        {/* Stats and Edit Profile row */}
+        {/* Stats and Follow/Unfollow row */}
         <div className="flex flex-row items-center gap-4 mt-4 md:mt-0 w-full flex-wrap">
           <span className="text-gray-700 text-base"><span className="font-bold">{user.postCount || 0}</span> posts</span>
           <span className="text-gray-700 text-base cursor-pointer hover:underline" onClick={() => setShowListModal('followers')}><span className="font-bold">{followersCount}</span> followers</span>
           <span className="text-gray-700 text-base cursor-pointer hover:underline" onClick={() => setShowListModal('following')}><span className="font-bold">{followingCount}</span> following</span>
-          <button
-            className="ml-2 px-4 py-1 rounded-full bg-orange-500 text-white font-semibold text-base hover:bg-orange-600 transition h-9 text-sm"
-            onClick={() => setShowEdit(true)}
-          >
-            Edit Profile
-          </button>
+          {user && user._id !== (JSON.parse(localStorage.getItem('user') || '{}').id || JSON.parse(localStorage.getItem('user') || '{}')._id) && (
+            isFollowing ? (
+              <button
+                className="ml-2 px-4 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-base hover:bg-gray-300 transition h-9 text-sm"
+                onClick={handleUnfollow}
+                disabled={followLoading}
+              >
+                {followLoading ? 'Unfollowing...' : 'Unfollow'}
+              </button>
+            ) : (
+              <button
+                className="ml-2 px-4 py-1 rounded-full bg-orange-500 text-white font-semibold text-base hover:bg-orange-600 transition h-9 text-sm"
+                onClick={handleFollow}
+                disabled={followLoading}
+              >
+                {followLoading ? 'Following...' : 'Follow'}
+              </button>
+            )
+          )}
         </div>
       </div>
       {/* Tabs */}
@@ -291,18 +299,13 @@ export default function UserProfileScreen() {
                           id: post._id || post.id,
                           title: post.title,
                           imageUrl: post.imageUrl || post.postPictureUrl,
-                          author: post.author || {
-                            name: post.authorId?.username || '',
-                            avatar: post.authorId?.profilePicture || '',
+                          author: {
+                            avatar: post.author?.avatar || post.authorId?.profilePicture || '',
+                            username: post.author?.username || post.authorId?.username || '',
                           },
                           likes: post.likes ?? post.likesCount ?? 0,
                           liked: !!post.liked,
                           saved: !!post.saved,
-                        }}
-                        showDelete={post.authorId?._id === userId || post.authorId === userId}
-                        onDelete={() => {
-                          setPostToDelete(post);
-                          setShowDeleteModal(true);
                         }}
                         onClick={() => setSelectedPostId(post._id || post.id)}
                         onLikeToggle={handleUpdatePostLike}
@@ -345,13 +348,13 @@ export default function UserProfileScreen() {
                   </div>
                 ) : customPlan ? (
                   <>
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 text-center">Your Custom Health Plan</h2>
+                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 text-center">User's Custom Health Plan</h2>
                     {/* User Info Row */}
                     <div className="flex flex-row justify-center gap-8 mb-6 animate-fade-in">
                       <div className="flex flex-col items-center">
                         <span className="text-3xl">🎂</span>
                         <span className="text-gray-500 text-sm">Age</span>
-                        <span className="font-bold text-lg text-gray-900">{calculateAge(user.dob) ?? '-'}</span>
+                        <span className="font-bold text-lg text-gray-900">{user.dob ? new Date().getFullYear() - new Date(user.dob).getFullYear() : '-'}</span>
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="text-3xl">⚖️</span>
@@ -375,10 +378,26 @@ export default function UserProfileScreen() {
                     <div className="bg-orange-50 rounded-2xl p-4 md:p-8 mb-6 mt-6">
                       <div className="text-lg font-semibold text-gray-900 mb-8">Daily recommendation</div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <MacroCard label="Calories" value={customPlan.calories} unit="" color={macroColors.Calories} />
-                        <MacroCard label="Carbs" value={customPlan.carbs} unit="g" color={macroColors.Carbs} />
-                        <MacroCard label="Protein" value={customPlan.protein} unit="g" color={macroColors.Protein} />
-                        <MacroCard label="Fats" value={customPlan.fats} unit="g" color={macroColors.Fats} />
+                        <div className="bg-white rounded-xl p-4 flex flex-col items-center shadow-sm">
+                          <div className="text-2xl mb-1 text-orange-500">🔥</div>
+                          <div className="text-gray-700 text-sm">Calories</div>
+                          <div className="font-bold text-xl text-gray-900">{customPlan.calories}<span className="text-sm font-normal text-gray-500"></span></div>
+                        </div>
+                        <div className="bg-white rounded-xl p-4 flex flex-col items-center shadow-sm">
+                          <div className="text-2xl mb-1 text-orange-400">🌾</div>
+                          <div className="text-gray-700 text-sm">Carbs</div>
+                          <div className="font-bold text-xl text-gray-900">{customPlan.carbs}<span className="text-sm font-normal text-gray-500">g</span></div>
+                        </div>
+                        <div className="bg-white rounded-xl p-4 flex flex-col items-center shadow-sm">
+                          <div className="text-2xl mb-1 text-red-400">🍗</div>
+                          <div className="text-gray-700 text-sm">Protein</div>
+                          <div className="font-bold text-xl text-gray-900">{customPlan.protein}<span className="text-sm font-normal text-gray-500">g</span></div>
+                        </div>
+                        <div className="bg-white rounded-xl p-4 flex flex-col items-center shadow-sm">
+                          <div className="text-2xl mb-1 text-blue-400">🥑</div>
+                          <div className="text-gray-700 text-sm">Fats</div>
+                          <div className="font-bold text-xl text-gray-900">{customPlan.fats}<span className="text-sm font-normal text-gray-500">g</span></div>
+                        </div>
                       </div>
                       <div className="mt-6 flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -406,52 +425,12 @@ export default function UserProfileScreen() {
           )}
         </AnimatePresence>
       </div>
-      {/* Edit Profile Modal */}
-      {showEdit && (
-        <EditProfileModal user={user} onClose={() => { setShowEdit(false); setRefresh(r => r + 1); }} />
-      )}
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && postToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full text-center">
-            <div className="text-xl font-semibold mb-4">Delete Post</div>
-            <div className="mb-6">Are you sure you want to delete this post?</div>
-            <div className="flex justify-center gap-4">
-              <button
-                className="px-4 py-2 rounded bg-gray-100 text-gray-700 font-medium hover:bg-gray-200"
-                onClick={() => { setShowDeleteModal(false); setPostToDelete(null); }}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 rounded font-medium bg-orange-500 text-white hover:bg-orange-600"
-                onClick={async () => {
-                  try {
-                    const token = localStorage.getItem('token');
-                    await axios.delete(`/api/posts/${postToDelete._id || postToDelete.id}`, {
-                      headers: { Authorization: `Bearer ${token}` },
-                    });
-                    setPosts(posts.filter(p => (p._id || p.id) !== (postToDelete._id || postToDelete.id)));
-                    setShowDeleteModal(false);
-                    setPostToDelete(null);
-                    // Optionally show a toast/snackbar here
-                  } catch (err) {
-                    alert('Failed to delete post.');
-                  }
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {/* Post Details Modal */}
       {selectedPostId && (
         <PostDetailsModal
           postId={selectedPostId}
           onClose={() => setSelectedPostId(null)}
-          currentUserId={userId}
+          currentUserId={user?.id || user?._id}
           onLikeUpdate={handleUpdatePostLike}
         />
       )}

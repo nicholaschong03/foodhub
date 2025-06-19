@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
 import { UserModel } from '../models/User';
 import { User } from '../validators/user.validator';
+import { FollowModel } from '../models/Follow';
+import mongoose from 'mongoose';
 
 export class UserService {
     static async createUser(userData: Omit<User, 'createdAt' | 'updatedAt'>) {
@@ -136,4 +138,48 @@ export class UserService {
         // Update and return the user
         return UserModel.findByIdAndUpdate(id, update, { new: true });
     }
+
+    static async getUserByUsername(username: string) {
+        return UserModel.findOne({ username });
+    }
+}
+
+// Follow a user
+export async function followUser(followerId: string, followingId: string) {
+    if (followerId === followingId) throw new Error('Cannot follow yourself');
+    return FollowModel.create({ follower: followerId, following: followingId });
+}
+
+// Unfollow a user
+export async function unfollowUser(followerId: string, followingId: string) {
+    return FollowModel.deleteOne({ follower: followerId, following: followingId });
+}
+
+// Check if followerId is following followingId
+export async function isFollowing(followerId: string, followingId: string) {
+    return !!(await FollowModel.findOne({ follower: followerId, following: followingId }));
+}
+
+// Get followers of a user
+export async function getFollowers(userId: string, page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+    const followers = await FollowModel.find({ following: userId })
+        .populate('follower', 'username profilePicture name')
+        .skip(skip)
+        .limit(limit)
+        .lean();
+    const total = await FollowModel.countDocuments({ following: userId });
+    return { followers, total, page, pageSize: limit, totalPages: Math.ceil(total / limit) };
+}
+
+// Get users that a user is following
+export async function getFollowing(userId: string, page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+    const following = await FollowModel.find({ follower: userId })
+        .populate('following', 'username profilePicture name')
+        .skip(skip)
+        .limit(limit)
+        .lean();
+    const total = await FollowModel.countDocuments({ follower: userId });
+    return { following, total, page, pageSize: limit, totalPages: Math.ceil(total / limit) };
 }

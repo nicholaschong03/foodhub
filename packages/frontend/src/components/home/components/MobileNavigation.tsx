@@ -5,19 +5,20 @@ const MobileNavigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const navigationItems = [
-    { icon: '🏠', label: 'Explore', path: '/' },
+    { icon: '🏠', label: 'Feed', path: '/feed' },
     { icon: '➕', label: 'Post', path: '/post' }, // path for Post is just a placeholder
-    { icon: '🔔', label: 'Notifications', path: '/notifications' },
+    { icon: '📍', label: 'Explore', path: '/explore' },
     { icon: '👤', label: 'Profile', path: '/profile' },
   ];
 
   const handleNavClick = (label: string, path: string) => {
     if (label === 'Profile') {
       navigate('/profile');
+    } else if (label === 'Feed') {
+      navigate('/feed');
     } else if (label === 'Explore') {
-      navigate('/');
+      navigate('/explore');
     } else {
-      // Add navigation logic for other buttons if needed
       navigate(path);
     }
   };
@@ -27,9 +28,9 @@ const MobileNavigation: React.FC = () => {
       <div className="flex items-center justify-around py-2">
         {navigationItems.map((item) => {
           const isActive =
-            (item.label === 'Explore' && location.pathname === '/feed') ||
-            (item.label === 'Profile' && location.pathname.startsWith('/profile')) ||
-            (item.label === 'Notifications' && location.pathname.startsWith('/notifications'));
+            (item.label === 'Feed' && location.pathname === '/feed') ||
+            (item.label === 'Profile' && location.pathname === '/profile') ||
+            (item.label === 'Explore' && location.pathname === '/explore');
           return (
             <button
               key={item.label}

@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
-import { createPost, getPostsPaginated, getPostById, getPostsByUser, deletePost } from '../services/post.service';
+import { createPost, getPostsPaginated, getPostById, getPostsByUser, deletePost, getPostsPaginatedWithDistance } from '../services/post.service';
 import { AuthRequest } from '../middlewares/auth.middleware';
+import * as postService from '../services/post.service';
+import { UserModel } from '../models/User';
 
 export class PostController {
     static async create(req: Request, res: Response) {
@@ -43,11 +45,12 @@ export class PostController {
         }
     }
 
-    static async list(req: Request, res: Response) {
+    static async list(req: AuthRequest, res: Response) {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
-            const result = await getPostsPaginated(page, limit);
+            const userId = req.user?.userId;
+            const result = await getPostsPaginated(page, limit, userId);
             res.json({ success: true, ...result });
         } catch (error) {
             res.status(500).json({ success: false, error: 'Error fetching posts' });
@@ -96,6 +99,53 @@ export class PostController {
                 return res.status(404).json({ success: false, error: 'Post not found.' });
             }
             res.status(500).json({ success: false, error: 'Error deleting post' });
+        }
+    }
+
+    static async getPostsByUsername(req: Request, res: Response) {
+        try {
+            const { username } = req.params;
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            // Try to get current user ID from req.user (if authenticated)
+            const userId = (req as any).user?.userId;
+            const result = await postService.getPostsByUsername(username, page, limit, userId);
+            res.json({ success: true, ...result });
+        } catch (error: any) {
+            if (error.message === 'User not found') {
+                return res.status(404).json({ success: false, error: 'User not found' });
+            }
+            res.status(500).json({ success: false, error: 'Error fetching posts by username' });
+        }
+    }
+
+    static async listWithDistance(req: AuthRequest, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const userId = req.user?.userId;
+
+            // Get location from query params
+            const latitude = parseFloat(req.query.latitude as string);
+            const longitude = parseFloat(req.query.longitude as string);
+
+            if (isNaN(latitude) || isNaN(longitude)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Latitude and longitude are required'
+                });
+            }
+
+            const result = await getPostsPaginatedWithDistance(
+                page,
+                limit,
+                { latitude, longitude },
+                userId
+            );
+
+            res.json({ success: true, ...result });
+        } catch (error) {
+            res.status(500).json({ success: false, error: 'Error fetching posts' });
         }
     }
 }
