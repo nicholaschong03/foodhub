@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import WelcomeScreen from './components/welcome/WelcomeScreen';
 import AuthScreen from './components/auth/AuthScreen';
 import CreateAccountModal from './components/auth/CreateAccountModal';
+import CustomPlanScreen from './components/auth/CustomPlanScreen';
 import HomeScreen from './components/home/HomeScreen';
 import UserProfileScreen from './components/profile/UserProfileScreen';
 import NotFoundScreen from './components/common/NotFoundScreen';
@@ -12,6 +13,12 @@ import Loading from './components/common/Loading';
 import OtherUserProfileScreen from './components/profile/OtherUserProfileScreen';
 import ExploreScreen from './components/home/components/ExploreScreen';
 import { ThemeProvider } from './contexts/ThemeContext';
+
+// Wrapper component to extract userId from URL params
+const CustomPlanWrapper = () => {
+  const { userId } = useParams<{ userId: string }>();
+  return <CustomPlanScreen userId={userId!} />;
+};
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -44,6 +51,11 @@ function App() {
           } />
           <Route path="/auth/register" element={
             user ? <Navigate to="/feed" replace /> : <CreateAccountModal />
+          } />
+          <Route path="/custom-plan/:userId" element={
+            <ProtectedRoute>
+              <CustomPlanWrapper />
+            </ProtectedRoute>
           } />
 
           {/* Protected routes */}

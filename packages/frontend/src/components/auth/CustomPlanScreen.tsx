@@ -104,7 +104,7 @@ export default function CustomPlanScreen({ userId, onClose }: { userId: string, 
           <button
             className="w-full py-3 rounded-2xl text-white font-semibold text-lg"
             style={{ background: 'linear-gradient(90deg, #FF6A00 0%, #FF8C1A 100%)' }}
-            onClick={onClose ? onClose : () => navigate('/feed')}
+            onClick={() => navigate('/feed')}
           >
             Let's get started!
           </button>

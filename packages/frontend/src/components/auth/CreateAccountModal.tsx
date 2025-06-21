@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 // import logoOrange from '../../assets/logo_orange.png';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { register } from '../../services/auth.service';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const genderOptions = ['Male', 'Female', 'Prefer not to say'];
@@ -17,7 +18,7 @@ const CreateAccountModal: React.FC = () => {
   const [checkingEmail, setCheckingEmail] = useState(false);
   const emailCheckTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const [password, setPassword] = useState('');
-  const [passwordValid, setPasswordValid] = useState(true);
+  const [passwordValid, setPasswordValid] = useState(false);
   // Step 2
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
@@ -121,7 +122,7 @@ const CreateAccountModal: React.FC = () => {
     !email ||
     !password ||
     !isEmailValid ||
-    !passwordValid ||
+    (password && !passwordValid) ||
     emailAvailable !== true ||
     checkingEmail;
   const isStep2Disabled = !name || !username || !gender;
@@ -263,7 +264,7 @@ const CreateAccountModal: React.FC = () => {
     if (!isStep8Disabled) {
       setShowLoader(true);
       try {
-        const res = await axios.post('/api/users/register', {
+        const userData = {
           email,
           password,
           name,
@@ -278,17 +279,14 @@ const CreateAccountModal: React.FC = () => {
           cusines: cuisines,
           allergies,
           adventurousness: Number(adventurousness),
-        });
-        const data = res.data;
-        if (data.success && data.data && data.data._id) {
-          // Store user in localStorage
-          localStorage.setItem('user', JSON.stringify(data.data));
-          setShowLoader(false);
-          navigate('/feed');
-        } else {
-          setShowLoader(false);
-        }
+        };
+
+        const { token, user } = await register(userData);
+
+        // Navigate to CustomPlanScreen with the user ID
+        navigate(`/custom-plan/${user.id}`);
       } catch (err) {
+        console.error('Registration error:', err);
         setShowLoader(false);
       }
     }
@@ -303,7 +301,7 @@ const CreateAccountModal: React.FC = () => {
           className="w-48 h-48 mb-8 animate-spin"
           style={{ animationDuration: '1.2s' }}
         />
-        <div className="text-2xl font-bold -mt-10" style={{ color: '#FF6A00', fontFamily: 'Google Sans, sans-serif' }}>
+        <div className="text-2xl font-bold -mt-10" style={{ color: '#FF6A00', fontFamily: 'Open Sans, sans-serif' }}>
           We're setting everything up for you
         </div>
       </div>

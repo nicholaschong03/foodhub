@@ -69,6 +69,13 @@ export const login = async (email: string, password: string): Promise<{ token: s
     return { token, user };
 };
 
+export const register = async (userData: any): Promise<{ token: string; user: User }> => {
+    const response = await axiosInstance.post('/users/register', userData);
+    const { token, data: user } = response.data;
+    setAuthData(token, user);
+    return { token, user };
+};
+
 export const logout = () => {
     clearAuthData();
     window.location.href = '/login';

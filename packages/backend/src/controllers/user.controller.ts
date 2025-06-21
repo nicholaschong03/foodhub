@@ -5,6 +5,16 @@ import { AuthRequest } from '../middlewares/auth.middleware';
 import { PostModel } from '../models/Posts';
 import { UserModel } from '../models/User';
 import { followUser, unfollowUser, isFollowing, getFollowers, getFollowing } from '../services/user.service';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET is not defined in environment variables');
+}
 
 export class UserController {
     static async register(req: Request, res: Response) {
@@ -15,9 +25,20 @@ export class UserController {
             // Create user
             const user = await UserService.createUser(validatedData);
 
+            // Generate JWT token
+            const token = jwt.sign(
+                {
+                    userId: user._id,
+                    email: user.email
+                },
+                JWT_SECRET,
+                { expiresIn: '24h' }
+            );
+
             res.status(201).json({
                 success: true,
-                data: user
+                data: user,
+                token
             });
         } catch (error) {
             console.error('User registration error:', error);

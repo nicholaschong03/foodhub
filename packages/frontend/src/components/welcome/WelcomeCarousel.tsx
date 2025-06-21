@@ -98,13 +98,13 @@ const WelcomeCarousel: React.FC<{ onGetStarted: () => void }> = ({ onGetStarted 
               {slide.illustration}
               <h2
                 className="text-2xl font-bold text-center mb-2"
-                style={{ fontFamily: 'Google Sans, sans-serif', fontWeight: 700 }}
+                style={{ fontFamily: 'Open Sans, sans-serif', fontWeight: 700 }}
               >
                 {slide.title}
               </h2>
               <p
                 className="text-gray-600 text-center mb-4 max-w-md mx-auto break-words"
-                style={{ fontFamily: 'Google Sans, sans-serif', fontWeight: 500 }}
+                style={{ fontFamily: 'Open Sans, sans-serif', fontWeight: 500 }}
               >
                 {slide.description}
               </p>
@@ -117,9 +117,8 @@ const WelcomeCarousel: React.FC<{ onGetStarted: () => void }> = ({ onGetStarted 
         {slides.map((_, idx) => (
           <button
             key={idx}
-            className={`w-3 h-1 rounded-full mx-1 inline-block transition-all duration-300 ${
-              idx === current ? 'bg-orange-500 w-4' : 'bg-orange-200'
-            }`}
+            className={`w-3 h-1 rounded-full mx-1 inline-block transition-all duration-300 ${idx === current ? 'bg-orange-500 w-4' : 'bg-orange-200'
+              }`}
             onClick={() => goTo(idx)}
             aria-label={`Go to slide ${idx + 1}`}
           />

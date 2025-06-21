@@ -44,10 +44,10 @@ const AuthScreen: React.FC = () => {
     <div className="flex flex-col items-center justify-center min-h-screen w-full bg-white px-6">
       <div className="w-full max-w-md mx-auto bg-white rounded-lg p-8 shadow-md">
         <img src={logoOrange} alt="Foodhub Logo" className="w-48 h-48 object-contain mx-auto absolute left-1/2 -translate-x-1/2 -top-1 z-10" />
-        <h2 className="text-2xl font-bold text-center mb-3 mt-20" style={{ fontFamily: 'Google Sans, sans-serif', fontWeight: 700 }}>
+        <h2 className="text-2xl font-bold text-center mb-3 mt-20" style={{ fontFamily: 'Open Sans, sans-serif', fontWeight: 700 }}>
           Login to Foodhub
         </h2>
-        <p className="text-gray-600 text-center mb-6" style={{ fontFamily: 'Google Sans, sans-serif', fontWeight: 500 }}>
+        <p className="text-gray-600 text-center mb-6" style={{ fontFamily: 'Open Sans, sans-serif', fontWeight: 500 }}>
           Get started with your food discovery journey
         </p>
         {error && (
