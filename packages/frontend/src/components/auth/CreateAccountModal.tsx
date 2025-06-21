@@ -281,7 +281,7 @@ const CreateAccountModal: React.FC = () => {
           adventurousness: Number(adventurousness),
         };
 
-        const { token, user } = await register(userData);
+        const { user } = await register(userData);
 
         // Navigate to CustomPlanScreen with the user ID
         navigate(`/custom-plan/${user.id}`);

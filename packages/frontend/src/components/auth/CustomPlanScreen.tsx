@@ -45,7 +45,7 @@ function BMIScale({ bmi }: { bmi: number }) {
   );
 }
 
-export default function CustomPlanScreen({ userId, onClose }: { userId: string, onClose?: () => void }) {
+export default function CustomPlanScreen({ userId }: { userId: string }) {
   const [plan, setPlan] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
