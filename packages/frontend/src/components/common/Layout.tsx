@@ -2,12 +2,15 @@ import React from 'react';
 import Header from './Header';
 import DesktopNavigation from '../home/components/DesktopNavigation';
 import MobileNavigation from '../home/components/MobileNavigation';
+import CreatePostModal from '../home/components/CreatePostModal';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const [isPostModalOpen, setIsPostModalOpen] = React.useState(false);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Desktop Layout */}
@@ -19,7 +22,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Main Content Area */}
         <div className="flex-1 ml-64">
-          <Header />
+          <Header onPostSelect={() => setIsPostModalOpen(true)} />
           <main className="pt-16">
             {children}
           </main>
@@ -28,11 +31,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Mobile Layout */}
       <div className="md:hidden">
-        <Header />
+        <Header onPostSelect={() => setIsPostModalOpen(true)} />
         <main className="pt-16 pb-20">
           {children}
         </main>
-        <MobileNavigation />
+        <MobileNavigation onPostClick={() => setIsPostModalOpen(true)} />
+        <CreatePostModal isOpen={isPostModalOpen} onClose={() => setIsPostModalOpen(false)} />
       </div>
     </div>
   );

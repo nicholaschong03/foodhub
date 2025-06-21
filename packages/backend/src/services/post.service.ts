@@ -5,6 +5,7 @@ import { PostSaveModel } from '../models/PostSaves';
 import { UserModel } from '../models/User';
 import mongoose from 'mongoose';
 import { PipelineStage } from 'mongoose';
+import { CommentModel } from '../models/Comment';
 
 // Calculate distance between two points using Haversine formula
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -201,4 +202,20 @@ export async function getPostsPaginatedWithDistance(
 
     return { posts, total, page, pageSize: limit, totalPages: Math.ceil(total / limit) };
 
+}
+
+export async function getCommentsForPost(postId: string) {
+    return CommentModel.find({ postId })
+        .sort({ createdAt: 1 })
+        .populate('userId', 'username profilePicture')
+        .lean();
+}
+
+export async function addCommentToPost(postId: string, userId: string, text: string) {
+    const comment = await CommentModel.create({ postId, userId, text });
+    // Increment commentsCount in Post
+    await PostModel.findByIdAndUpdate(postId, { $inc: { commentsCount: 1 } });
+    // Populate userId with username and profilePicture
+    const populatedComment = await comment.populate('userId', 'username profilePicture');
+    return populatedComment;
 }

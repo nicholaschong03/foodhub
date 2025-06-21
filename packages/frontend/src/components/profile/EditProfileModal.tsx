@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { updateUserProfile } from '../../services/userService';
 import DefaultProfileIcon from '../common/DefaultProfileIcon';
 import Cropper from 'react-easy-crop';
@@ -46,6 +46,11 @@ export default function EditProfileModal({ user, onClose }: { user: any, onClose
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showPhotoSheet, setShowPhotoSheet] = useState(false);
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleChange(field: string, value: any) {
     setForm(f => ({ ...f, [field]: value }));
@@ -106,6 +111,7 @@ export default function EditProfileModal({ user, onClose }: { user: any, onClose
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
       setShowCropModal(true);
+      setShowPhotoSheet(false);
     }
   }
 
@@ -188,7 +194,7 @@ export default function EditProfileModal({ user, onClose }: { user: any, onClose
           {tab === 'Basic' && (
             <div>
               <div className="flex flex-col items-center mb-4">
-                <label htmlFor="profilePic" className="relative cursor-pointer group">
+                <div className="relative group">
                   {form.profilePicture ? (
                     <img src={form.profilePicture} alt="Profile" className="w-24 h-24 rounded-full object-cover border-2 border-orange-300" />
                   ) : (
@@ -196,10 +202,64 @@ export default function EditProfileModal({ user, onClose }: { user: any, onClose
                       <DefaultProfileIcon className="text-orange-400" size={48} />
                     </div>
                   )}
-                  <span className="absolute bottom-0 right-0 bg-orange-500 text-white rounded-full p-1 text-xs group-hover:bg-orange-600 transition">Edit</span>
-                  <input id="profilePic" type="file" accept="image/*" className="hidden" onChange={handleProfilePicChange} />
-                </label>
+                  <span
+                    className="absolute bottom-0 right-0 bg-orange-500 text-white rounded-full p-1 text-xs group-hover:bg-orange-600 transition cursor-pointer"
+                    onClick={() => setShowPhotoSheet(true)}
+                  >
+                    Edit
+                  </span>
+                  <input
+                    ref={fileInputRef}
+                    id="profilePicUpload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleProfilePicChange}
+                  />
+                  {isMobile && (
+                    <input
+                      ref={cameraInputRef}
+                      id="profilePicCamera"
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={handleProfilePicChange}
+                    />
+                  )}
+                </div>
               </div>
+              {showPhotoSheet && (
+                <div className="fixed inset-0 z-50 flex items-end bg-black bg-opacity-40" onClick={() => setShowPhotoSheet(false)}>
+                  <div
+                    className="w-full bg-white rounded-t-2xl p-6 pb-8 shadow-2xl"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div className="flex flex-col gap-4">
+                      <button
+                        className="w-full py-3 rounded-lg bg-orange-500 text-white font-semibold text-lg"
+                        onClick={() => { fileInputRef.current?.click(); setShowPhotoSheet(false); }}
+                      >
+                        Upload Photo
+                      </button>
+                      {isMobile && (
+                        <button
+                          className="w-full py-3 rounded-lg bg-orange-500 text-white font-semibold text-lg"
+                          onClick={() => { cameraInputRef.current?.click(); setShowPhotoSheet(false); }}
+                        >
+                          Take Photo
+                        </button>
+                      )}
+                      <button
+                        className="w-full py-3 rounded-lg bg-gray-200 text-gray-700 font-semibold text-lg mt-2"
+                        onClick={() => setShowPhotoSheet(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="mb-3">
                 <label className="block text-gray-700 text-sm mb-1">Name</label>
                 <input type="text" className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" value={form.name} onChange={e => handleChange('name', e.target.value)} />
@@ -274,7 +334,7 @@ export default function EditProfileModal({ user, onClose }: { user: any, onClose
               <div className="mb-3">
                 <label className="block text-gray-700 text-sm mb-1">Adventurousness</label>
                 <div className="flex gap-1">
-                  {[1,2,3,4,5].map(n => (
+                  {[1, 2, 3, 4, 5].map(n => (
                     <button type="button" key={n} className={`w-8 h-8 rounded-full flex items-center justify-center text-lg border ${form.adventurousness === n ? 'bg-orange-400 text-white border-orange-500' : 'bg-gray-100 text-gray-500 border-gray-200'}`} onClick={() => handleChange('adventurousness', n)}>{n}</button>
                   ))}
                 </div>

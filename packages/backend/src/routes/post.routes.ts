@@ -59,6 +59,8 @@ router.get('/liked/:username', authenticateToken, getLikedPostsByUsername);
 // Get saved posts by username
 router.get('/saved/:username', authenticateToken, getSavedPostsByUsername);
 
-
+// Add comment routes
+router.get('/:postId/comments', authenticateToken, PostController.getCommentsForPostController);
+router.post('/:postId/comments', authenticateToken, PostController.addCommentToPostController);
 
 export default router;

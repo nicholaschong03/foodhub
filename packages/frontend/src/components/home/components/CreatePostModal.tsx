@@ -87,7 +87,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
   });
 
   useEffect(() => {
-    if(isLoaded){
+    if (isLoaded) {
       init();
     }
   }, [isLoaded, init])
@@ -117,6 +117,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
     restaurantName.trim() &&
     restaurantLocation
   );
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
@@ -321,13 +324,41 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
         </svg>
         <p className="text-gray-700 font-medium">Drag & drop an image here or click to upload</p>
         <p className="text-gray-400 text-sm mt-1">PNG, JPG, JPEG, WEBP (max 32MB)</p>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/png, image/jpg, image/jpeg, image/webp"
-          className="hidden"
-          onChange={handleFileChange}
-        />
+        <div className="flex gap-3 mt-4">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png, image/jpg, image/jpeg, image/webp"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <button
+            type="button"
+            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+            onClick={e => { e.stopPropagation(); handleClick(); }}
+          >
+            Upload Photo
+          </button>
+          {isMobile && (
+            <>
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <button
+                type="button"
+                className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                onClick={e => { e.stopPropagation(); cameraInputRef.current?.click(); }}
+              >
+                Take Photo
+              </button>
+            </>
+          )}
+        </div>
       </div>
     );
   } else if (step === 'crop' && previewUrl) {
@@ -352,11 +383,10 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
             {aspectRatios.map((ar) => (
               <button
                 key={ar.label}
-                className={`border rounded px-2 py-1 text-sm font-medium transition-colors ${
-                  aspect === ar.value || (ar.value === null && aspect === null)
-                    ? 'border-orange-500 text-orange-500 bg-orange-50'
-                    : 'border-gray-300 text-gray-700 hover:border-orange-400'
-                }`}
+                className={`border rounded px-2 py-1 text-sm font-medium transition-colors ${aspect === ar.value || (ar.value === null && aspect === null)
+                  ? 'border-orange-500 text-orange-500 bg-orange-50'
+                  : 'border-gray-300 text-gray-700 hover:border-orange-400'
+                  }`}
                 onClick={() => setAspect(ar.value)}
               >
                 {ar.label}
@@ -429,7 +459,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
           <div>
             <label className="block text-sm font-medium mb-1">Food Rating</label>
             <div className="flex items-center gap-1">
-              {[1,2,3,4,5].map(num => (
+              {[1, 2, 3, 4, 5].map(num => (
                 <button
                   type="button"
                   key={num}

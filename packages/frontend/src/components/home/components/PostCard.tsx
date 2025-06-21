@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import DefaultProfileIcon from '../../common/DefaultProfileIcon';
 import { FaTrash, FaHeart, FaRegHeart } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { MapPinIcon } from '@heroicons/react/24/outline';
+import { HiOutlineDotsVertical } from 'react-icons/hi';
 
 interface Author {
   avatar: string;
@@ -33,6 +34,7 @@ interface PostCardProps {
 
 const PostCard: React.FC<PostCardProps> = ({ post, onClick, showDelete, onDelete, onLikeToggle, showDistance }) => {
   const navigate = useNavigate();
+  const [showMenu, setShowMenu] = useState(false);
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onLikeToggle) {
@@ -61,15 +63,37 @@ const PostCard: React.FC<PostCardProps> = ({ post, onClick, showDelete, onDelete
           alt={post.title}
           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
         />
-        {/* Delete button (top-right) */}
+        {/* Delete button (top-right, desktop only) */}
         {showDelete && (
-          <button
-            className="absolute top-2 right-2 z-10 p-1 bg-white rounded-full shadow hover:bg-orange-100 text-gray-500 hover:text-orange-600 opacity-0 group-hover:opacity-100 transition"
-            onClick={e => { e.stopPropagation(); onDelete && onDelete(); }}
-            title="Delete Post"
-          >
-            <FaTrash size={16} />
-          </button>
+          <>
+            <button
+              className="hidden md:block absolute top-2 right-2 z-10 p-1 bg-white rounded-full shadow hover:bg-orange-100 text-gray-500 hover:text-orange-600 opacity-0 group-hover:opacity-100 transition"
+              onClick={e => { e.stopPropagation(); onDelete && onDelete(); }}
+              title="Delete Post"
+            >
+              <FaTrash size={16} />
+            </button>
+            {/* 3-dot menu for mobile */}
+            <div className="block md:hidden absolute top-2 right-2 z-10">
+              <button
+                className="p-1 bg-white rounded-full shadow text-gray-500 hover:text-orange-600"
+                onClick={e => { e.stopPropagation(); setShowMenu(v => !v); }}
+                title="Post options"
+              >
+                <HiOutlineDotsVertical size={18} />
+              </button>
+              {showMenu && (
+                <div className="absolute right-0 mt-2 w-28 bg-white rounded shadow-lg border text-sm">
+                  <button
+                    className="w-full text-left px-4 py-2 hover:bg-orange-100 text-red-600"
+                    onClick={e => { e.stopPropagation(); setShowMenu(false); onDelete && onDelete(); }}
+                  >
+                    <FaTrash className="inline mr-2" /> Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
 
@@ -88,17 +112,17 @@ const PostCard: React.FC<PostCardProps> = ({ post, onClick, showDelete, onDelete
               className="flex items-center space-x-1 cursor-pointer group/profile hover:text-orange-500"
               title={post.author.username}
             >
-            {post.author.avatar ? (
-              <img
-                src={post.author.avatar}
+              {post.author.avatar ? (
+                <img
+                  src={post.author.avatar}
                   alt={post.author.username}
                   className="w-5 h-5 rounded-full object-cover ring-0 group-hover/profile:ring-2 group-hover/profile:ring-orange-400 transition"
-              />
-            ) : (
-              <span className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center">
-                <DefaultProfileIcon className="text-orange-400" size={14} />
-              </span>
-            )}
+                />
+              ) : (
+                <span className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center">
+                  <DefaultProfileIcon className="text-orange-400" size={14} />
+                </span>
+              )}
               <span className="text-xs text-gray-600 truncate group-hover/profile:underline group-hover/profile:text-orange-500 transition">
                 {post.author.username}
               </span>

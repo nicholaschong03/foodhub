@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { getPostDetails, likePost, unlikePost, hasLikedPost, savePost, unsavePost, hasSavedPost } from '../../../services/postService';
-import { FaUtensils, FaRegCommentDots, FaRegHeart, FaHeart, FaRegBookmark, FaBookmark, FaMapMarkerAlt, FaRegFileAlt, FaPaperPlane } from 'react-icons/fa';
+import { getPostDetails, likePost, unlikePost, hasLikedPost, savePost, unsavePost, hasSavedPost, getComments, addComment } from '../../../services/postService';
+import { FaUtensils, FaRegCommentDots, FaRegHeart, FaHeart, FaRegBookmark, FaBookmark, FaMapMarkerAlt, FaRegFileAlt, FaPaperPlane, FaTimes } from 'react-icons/fa';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { followUser, unfollowUser, isFollowing as checkIsFollowing } from '../../../services/userService';
@@ -30,17 +30,22 @@ interface Post {
   };
 }
 
+interface Comment {
+  id: string;
+  userId: {
+    username: string;
+    profilePicture?: string;
+  };
+  text: string;
+  createdAt: string;
+}
+
 interface PostDetailsModalProps {
   postId: string;
   onClose: () => void;
   currentUserId?: string;
   onLikeUpdate?: (postId: string, likesCount: number, liked: boolean) => void;
 }
-
-const dummyComments = [
-  { id: 1, user: { name: 'Alice', avatar: '/default-avatar.png' }, text: 'Looks delicious!' },
-  { id: 2, user: { name: 'Bob', avatar: '/default-avatar.png' }, text: 'Where is this place?' },
-];
 
 const MODAL_WIDTH = 1000;
 const MODAL_HEIGHT = 700;
@@ -55,6 +60,12 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
   const [isSaving, setIsSaving] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+  const [commentInput, setCommentInput] = useState('');
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [showCommentModal, setShowCommentModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -89,6 +100,15 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
     checkFollow();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [post, currentUserId]);
+
+  // Fetch comments
+  useEffect(() => {
+    setCommentsLoading(true);
+    getComments(postId)
+      .then(setComments)
+      .catch(() => setComments([]))
+      .finally(() => setCommentsLoading(false));
+  }, [postId]);
 
   const handleLike = async () => {
     if (!currentUserId || isLiking || !post) return;
@@ -158,6 +178,27 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
     }
   };
 
+  const handleCommentSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!commentInput.trim() || commentSubmitting) return;
+    setCommentSubmitting(true);
+    setCommentError(null);
+    try {
+      const newComment = await addComment(postId, commentInput.trim());
+      setComments((prev) => [...prev, {
+        ...newComment,
+        userId: newComment.userId || { username: 'You', profilePicture: '/default-avatar.png' },
+      }]);
+      setCommentInput('');
+      // Optionally update post.commentsCount
+      setPost((prev) => prev ? { ...prev, commentsCount: prev.commentsCount + 1 } : prev);
+    } catch (err) {
+      setCommentError('Failed to add comment');
+    } finally {
+      setCommentSubmitting(false);
+    }
+  };
+
   if (loading || !post) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
@@ -174,6 +215,72 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
   // Update the author comparison
   const isAuthor = post?.authorId?._id === currentUserId;
 
+  // Mobile comment modal component
+  const mobileCommentModal = (
+    <AnimatePresence>
+      {showCommentModal && (
+        <motion.div
+          className="fixed inset-0 z-50 flex flex-col justify-end bg-black bg-opacity-40"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="bg-white rounded-t-2xl shadow-2xl flex flex-col max-h-[80vh] w-full"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <span className="font-semibold text-lg">Comments</span>
+              <button onClick={() => setShowCommentModal(false)} className="text-gray-400 hover:text-gray-700 text-2xl">
+                <FaTimes />
+              </button>
+            </div>
+            {/* Comments List */}
+            <div className="flex-1 overflow-y-auto px-4 py-2">
+              {commentsLoading ? (
+                <div className="text-gray-500">Loading comments…</div>
+              ) : comments.length === 0 ? (
+                <div className="text-gray-400">No comments yet.</div>
+              ) : (
+                comments.map((c) => (
+                  <div key={c.id} className="flex items-center gap-2 mb-3">
+                    <img src={c.userId?.profilePicture || '/default-avatar.png'} alt={c.userId?.username || 'User'} className="w-7 h-7 rounded-full" />
+                    <span className="text-sm font-medium">{c.userId?.username || 'User'}</span>
+                    <span className="text-sm text-gray-600">{c.text}</span>
+                  </div>
+                ))
+              )}
+            </div>
+            {/* Comment input */}
+            <form className="flex items-center gap-2 px-4 py-3 border-t" onSubmit={handleCommentSubmit}>
+              <input
+                className="flex-1 border rounded px-2 py-2 text-sm"
+                placeholder="Write a comment..."
+                value={commentInput}
+                onChange={e => setCommentInput(e.target.value)}
+                disabled={commentSubmitting}
+                maxLength={1000}
+              />
+              <button
+                type="submit"
+                className="px-2 py-2 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 flex items-center justify-center disabled:opacity-60"
+                disabled={!commentInput.trim() || commentSubmitting}
+                title="Send"
+              >
+                <FaPaperPlane className="w-4 h-4" />
+              </button>
+            </form>
+            {commentError && <div className="text-red-500 text-xs px-4 pb-2">{commentError}</div>}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   // Mobile layout
   const mobileContent = (
     <AnimatePresence>
@@ -186,7 +293,7 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
         {/* Close button */}
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-3xl font-bold z-10">&times;</button>
         {/* Image at top */}
-        <div className="relative w-full bg-black flex items-center justify-center" style={{ minHeight: 260, maxHeight: 340 }}>
+        <div className="relative w-full bg-white flex items-center justify-center" style={{ minHeight: 260, maxHeight: 340 }}>
           <img src={post.postPictureUrl} alt={post.title} className="max-h-[320px] w-full object-contain" />
           {/* Toggle Button */}
           <button
@@ -262,28 +369,17 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
                 >
                   {isSaved ? <FaBookmark /> : <FaRegBookmark />}
                 </motion.button>
-                <span className="flex items-center gap-1 text-gray-500">
+                {/* Comment icon button opens modal */}
+                <motion.button
+                  className="flex items-center gap-1 text-gray-500 hover:text-orange-500 focus:outline-none"
+                  onClick={() => setShowCommentModal(true)}
+                  whileTap={{ scale: 0.9 }}
+                  title="Show comments"
+                >
                   <FaRegCommentDots /> {post.commentsCount}
-                </span>
+                </motion.button>
               </div>
-              {/* Comments */}
-              <div className="flex-1 overflow-y-auto mb-3">
-                <div className="font-semibold mb-2 text-base">Comments</div>
-                {dummyComments.map((c) => (
-                  <div key={c.id} className="flex items-center gap-2 mb-2">
-                    <img src={c.user.avatar} alt={c.user.name} className="w-6 h-6 rounded-full" />
-                    <span className="text-sm font-medium">{c.user.name}</span>
-                    <span className="text-sm text-gray-600">{c.text}</span>
-                  </div>
-                ))}
-              </div>
-              {/* Comment input */}
-              <div className="flex items-center gap-2 mt-2">
-                <input className="flex-1 border rounded px-2 py-2 text-sm" placeholder="Write a comment..." />
-                <button className="px-2 py-2 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 flex items-center justify-center">
-                  <FaPaperPlane className="w-4 h-4" />
-                </button>
-              </div>
+              {/* Comments are now hidden by default on mobile */}
             </>
           ) : (
             <>
@@ -329,6 +425,8 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
             </>
           )}
         </div>
+        {/* Comment modal for mobile */}
+        {mobileCommentModal}
       </motion.div>
     </AnimatePresence>
   );
@@ -352,7 +450,7 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
           {/* Close button */}
           <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-3xl font-bold z-10">&times;</button>
           {/* Left: Post Image */}
-          <div className="relative flex-shrink-0 flex flex-col items-center justify-center bg-black" style={{ width: 480, height: '100%' }}>
+          <div className="relative flex-shrink-0 flex flex-col items-center justify-center bg-white" style={{ width: 480, height: '100%' }}>
             <img src={post.postPictureUrl} alt={post.title} className="max-h-[90%] max-w-[90%] object-contain rounded-l-xl" />
             {/* Toggle Button */}
             <button
@@ -435,21 +533,40 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
                 {/* Comments */}
                 <div className="flex-1 overflow-y-auto mb-4">
                   <div className="font-semibold mb-3 text-lg">Comments</div>
-                  {dummyComments.map((c) => (
-                    <div key={c.id} className="flex items-center gap-3 mb-3">
-                      <img src={c.user.avatar} alt={c.user.name} className="w-8 h-8 rounded-full" />
-                      <span className="text-base font-medium">{c.user.name}</span>
-                      <span className="text-base text-gray-600">{c.text}</span>
-                    </div>
-                  ))}
+                  {commentsLoading ? (
+                    <div className="text-gray-500">Loading comments…</div>
+                  ) : comments.length === 0 ? (
+                    <div className="text-gray-400">No comments yet.</div>
+                  ) : (
+                    comments.map((c) => (
+                      <div key={c.id} className="flex items-center gap-3 mb-3">
+                        <img src={c.userId?.profilePicture || '/default-avatar.png'} alt={c.userId?.username || 'User'} className="w-8 h-8 rounded-full" />
+                        <span className="text-base font-medium">{c.userId?.username || 'User'}</span>
+                        <span className="text-base text-gray-600">{c.text}</span>
+                      </div>
+                    ))
+                  )}
                 </div>
                 {/* Comment input */}
-                <div className="flex items-center gap-3 mt-2">
-                  <input className="flex-1 border rounded px-3 py-2 text-base" placeholder="Write a comment..." />
-                  <button className="px-3 py-2 bg-orange-500 text-white rounded text-base hover:bg-orange-600 flex items-center justify-center">
+                <form className="flex items-center gap-3 mt-2" onSubmit={handleCommentSubmit}>
+                  <input
+                    className="flex-1 border rounded px-3 py-2 text-base"
+                    placeholder="Write a comment..."
+                    value={commentInput}
+                    onChange={e => setCommentInput(e.target.value)}
+                    disabled={commentSubmitting}
+                    maxLength={1000}
+                  />
+                  <button
+                    type="submit"
+                    className="px-3 py-2 bg-orange-500 text-white rounded text-base hover:bg-orange-600 flex items-center justify-center disabled:opacity-60"
+                    disabled={!commentInput.trim() || commentSubmitting}
+                    title="Send"
+                  >
                     <FaPaperPlane className="w-4 h-4" />
                   </button>
-                </div>
+                </form>
+                {commentError && <div className="text-red-500 text-xs mt-1">{commentError}</div>}
               </>
             ) : (
               <>

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { createPost, getPostsPaginated, getPostById, getPostsByUser, deletePost, getPostsPaginatedWithDistance } from '../services/post.service';
+import { createPost, getPostsPaginated, getPostById, getPostsByUser, deletePost, getPostsPaginatedWithDistance, getCommentsForPost, addCommentToPost } from '../services/post.service';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import * as postService from '../services/post.service';
 import { UserModel } from '../models/User';
@@ -146,6 +146,34 @@ export class PostController {
             res.json({ success: true, ...result });
         } catch (error) {
             res.status(500).json({ success: false, error: 'Error fetching posts' });
+        }
+    }
+
+    static async getCommentsForPostController(req: AuthRequest, res: Response) {
+        try {
+            const { postId } = req.params;
+            const comments = await getCommentsForPost(postId);
+            res.json(comments);
+        } catch (err) {
+            res.status(500).json({ error: 'Failed to fetch comments' });
+        }
+    }
+
+    static async addCommentToPostController(req: AuthRequest, res: Response) {
+        try {
+            const { postId } = req.params;
+            const userId = req.user?.userId;
+            const { text } = req.body;
+            if (!userId) {
+                return res.status(401).json({ error: 'Unauthorized' });
+            }
+            if (!text || typeof text !== 'string' || !text.trim()) {
+                return res.status(400).json({ error: 'Comment text is required' });
+            }
+            const comment = await addCommentToPost(postId, userId, text.trim());
+            res.status(201).json(comment);
+        } catch (err) {
+            res.status(500).json({ error: 'Failed to add comment' });
         }
     }
 }

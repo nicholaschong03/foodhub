@@ -1,7 +1,11 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const MobileNavigation: React.FC = () => {
+interface MobileNavigationProps {
+  onPostClick?: () => void;
+}
+
+const MobileNavigation: React.FC<MobileNavigationProps> = ({ onPostClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const navigationItems = [
@@ -12,7 +16,9 @@ const MobileNavigation: React.FC = () => {
   ];
 
   const handleNavClick = (label: string, path: string) => {
-    if (label === 'Profile') {
+    if (label === 'Post' && onPostClick) {
+      onPostClick();
+    } else if (label === 'Profile') {
       navigate('/profile');
     } else if (label === 'Feed') {
       navigate('/feed');
@@ -34,9 +40,8 @@ const MobileNavigation: React.FC = () => {
           return (
             <button
               key={item.label}
-              className={`flex flex-col items-center space-y-1 py-2 px-3 transition-colors ${
-                isActive ? 'text-orange-500' : 'text-gray-600 hover:text-orange-500'
-              }`}
+              className={`flex flex-col items-center space-y-1 py-2 px-3 transition-colors ${isActive ? 'text-orange-500' : 'text-gray-600 hover:text-orange-500'
+                }`}
               onClick={() => handleNavClick(item.label, item.path)}
             >
               <span className="text-lg">{item.icon}</span>

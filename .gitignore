@@ -26,3 +26,8 @@ pnpm-debug.log*
 # System Files
 .DS_Store
 Thumbs.db
+
+# Script Files
+packages/backend/src/scripts/seedUsers.ts
+packages/backend/src/scripts/seedPosts.ts
+packages/backend/src/scripts/updatePosts.ts

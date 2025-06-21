@@ -261,3 +261,27 @@ export async function getPostsWithDistance(
         totalPages: res.data.totalPages,
     };
 }
+
+export async function getComments(postId: string) {
+    const token = localStorage.getItem('token');
+    const res = await axios.get(`/api/posts/${postId}/comments`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return res.data.map((comment: any) => ({
+        id: comment._id,
+        userId: {
+            username: comment.userId.username,
+            profilePicture: comment.userId.profilePicture,
+        },
+        text: comment.text,
+        createdAt: comment.createdAt,
+    }));
+}
+
+export async function addComment(postId: string, text: string) {
+    const token = localStorage.getItem('token');
+    const res = await axios.post(`/api/posts/${postId}/comments`, { text }, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return res.data;
+}
