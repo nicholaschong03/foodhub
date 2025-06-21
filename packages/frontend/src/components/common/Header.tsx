@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import logoOrange from '../../assets/logo_orange_cropped.png';
+// import logoOrange from '../../assets/logo_orange_cropped.png';
 import DefaultProfileIcon from './DefaultProfileIcon';
 import { search, SearchUser, SearchPost } from '../../services/searchService';
 import { useDebounce } from '../../hooks/useDebounce';
@@ -9,6 +9,9 @@ import ProfileModal from './ProfileModal';
 interface HeaderProps {
   onPostSelect: (postId: string) => void;
 }
+
+const logoOrange = 'https://res.cloudinary.com/dsanama6k/image/upload/v1750516307/logo_orange_cropped_npfklt.png';
+
 
 const Header: React.FC<HeaderProps> = ({ onPostSelect }) => {
   const [searchQuery, setSearchQuery] = useState('');

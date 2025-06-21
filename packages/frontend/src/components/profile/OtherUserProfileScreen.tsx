@@ -1,16 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { getUserProfile, getUserProfileByUsername, getFollowers, getFollowing } from '../../services/userService';
+import { useEffect, useState } from 'react';
+import { getUserProfileByUsername, getFollowers, getFollowing } from '../../services/userService';
 import { getPostsByUsername, getLikedPostsByUsername, getSavedPostsByUsername, likePost, unlikePost } from '../../services/postService';
 import { followUser, unfollowUser, isFollowing as checkIsFollowing } from '../../services/userService';
-import CustomPlanScreen from '../auth/CustomPlanScreen';
+// import CustomPlanScreen from '../auth/CustomPlanScreen';
 import PostCard from '../home/components/PostCard';
-import logoOrange from '../../assets/logo_orange.png';
+// import logoOrange from '../../assets/logo_orange.png';
 import DefaultProfileIcon from '../common/DefaultProfileIcon';
 import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import PostDetailsModal from '../home/components/PostDetailsModal';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../common/Header';
+
+const logoOrange = 'https://res.cloudinary.com/dsanama6k/image/upload/v1750516307/logo_orange_rf4tri.png';
+
 
 const TABS = ['Posts', 'Saved', 'Liked', 'Health'];
 
@@ -43,7 +46,6 @@ export default function OtherUserProfileScreen() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [tab, setTab] = useState('Posts');
-  const [refresh, setRefresh] = useState(0);
   const [posts, setPosts] = useState<any[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [customPlan, setCustomPlan] = useState<any>(null);
@@ -63,7 +65,7 @@ export default function OtherUserProfileScreen() {
     if (username) {
       getUserProfileByUsername(username).then(setUser);
     }
-  }, [username, refresh]);
+  }, [username]);
 
   useEffect(() => {
     if (username) {
@@ -72,7 +74,7 @@ export default function OtherUserProfileScreen() {
       setHasMore(true);
       loadPosts();
     }
-  }, [tab, refresh, username]);
+  }, [tab, username]);
 
   useEffect(() => {
     if (tab === 'Health' && user && user._id) {

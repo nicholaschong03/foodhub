@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import PostCard from './PostCard';
-import { getPosts, getPostsWithDistance, Post as PostType, likePost, unlikePost, savePost, unsavePost } from '../../../services/postService';
+import { getPosts, getPostsWithDistance, Post as PostType, likePost, unlikePost } from '../../../services/postService';
 import PostDetailsModal from './PostDetailsModal';
 import { MapPinIcon } from '@heroicons/react/24/outline';
 import Header from '../../common/Header';
@@ -10,11 +10,9 @@ const Feed: React.FC = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('Recommended');
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [locationError, setLocationError] = useState<string | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Get userId from localStorage
@@ -24,7 +22,6 @@ const Feed: React.FC = () => {
   // Request user's location
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by your browser');
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -33,10 +30,8 @@ const Feed: React.FC = () => {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
-        setLocationError(null);
       },
-      (error) => {
-        setLocationError('Please enable location access to see nearby posts');
+      () => {
         setUserLocation(null);
       }
     );
@@ -63,27 +58,6 @@ const Feed: React.FC = () => {
     }
   };
 
-  // Callback to update saved state in feed
-  const handleUpdatePostSave = async (postId: string, saved: boolean) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId
-          ? { ...post, saved }
-          : post
-      )
-    );
-    // Call save/unsave API
-    try {
-      if (saved) {
-        await savePost(postId);
-      } else {
-        await unsavePost(postId);
-      }
-    } catch (err) {
-      // Optionally handle error (rollback UI, show toast, etc.)
-    }
-  };
-
   // Fetch posts for a given page
   const fetchPosts = useCallback(async (pageToFetch: number) => {
     setLoading(true);
@@ -91,8 +65,6 @@ const Feed: React.FC = () => {
       let res;
       if (selectedCategory === 'Nearby') {
         if (!userLocation) {
-          setError('Location access required');
-          setLoading(false);
           return;
         }
         res = await getPostsWithDistance(pageToFetch, 20, userLocation);
@@ -106,9 +78,8 @@ const Feed: React.FC = () => {
         setPosts((prev) => [...prev, ...res.posts]);
       }
       setHasMore(res.posts.length > 0 && pageToFetch < res.totalPages);
-      setError(null);
     } catch (err) {
-      setError('Failed to load posts');
+      // Optionally handle error (rollback UI, show toast, etc.)
     } finally {
       setLoading(false);
     }
@@ -201,13 +172,6 @@ const Feed: React.FC = () => {
           >
             Enable Location
           </button>
-        </div>
-      )}
-
-      {/* Loading/Error States */}
-      {error && (
-        <div className={`text-center py-10 text-red-500 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
-          {error}
         </div>
       )}
 

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import logoOrange from '../../assets/logo_orange.png';
-import CustomPlanScreen from './CustomPlanScreen';
+// import logoOrange from '../../assets/logo_orange.png';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const genderOptions = ['Male', 'Female', 'Prefer not to say'];
+
+const logoOrange = 'https://res.cloudinary.com/dsanama6k/image/upload/v1750516307/logo_orange_rf4tri.png';
+
 
 const CreateAccountModal: React.FC = () => {
   const [step, setStep] = useState(1);
@@ -84,7 +86,7 @@ const CreateAccountModal: React.FC = () => {
     { label: 'Korean', icon: '🍜' },
     { label: 'Malaysian', icon: '🍲' },
     { label: 'Mexican', icon: '🌮' },
-    { label: 'Middle Eastern', icon: '🥙' },
+    { label: 'Middle Eastern', icon: '��' },
     { label: 'Thai', icon: '🍤' },
     { label: 'Vietnamese', icon: '🍜' },
     { label: 'Western', icon: '🍔' },
@@ -94,7 +96,7 @@ const CreateAccountModal: React.FC = () => {
   const isStep6Disabled = cuisines.length === 0;
   // Step 8
   const allergyOptions = [
-    {label: 'None', icon: '🚫'},
+    { label: 'None', icon: '🚫' },
     { label: 'Milk', icon: '🥛' },
     { label: 'Peanuts', icon: '🥜' },
     { label: 'Shellfish', icon: '🦐' },
@@ -111,8 +113,6 @@ const CreateAccountModal: React.FC = () => {
   const [adventurousness, setAdventurousness] = useState('3');
   const [showLoader, setShowLoader] = useState(false);
   const isStep8Disabled = !adventurousness;
-  const [userId, setUserId] = useState<string | null>(null);
-  const [showPlan, setShowPlan] = useState(false);
   const navigate = useNavigate();
 
   // Validation
@@ -283,7 +283,6 @@ const CreateAccountModal: React.FC = () => {
         if (data.success && data.data && data.data._id) {
           // Store user in localStorage
           localStorage.setItem('user', JSON.stringify(data.data));
-          setUserId(data.data._id);
           setShowLoader(false);
           navigate('/feed');
         } else {
@@ -295,7 +294,7 @@ const CreateAccountModal: React.FC = () => {
     }
   };
 
-  if (showLoader && !showPlan) {
+  if (showLoader) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
         <img
@@ -309,10 +308,6 @@ const CreateAccountModal: React.FC = () => {
         </div>
       </div>
     );
-  }
-
-  if (userId && showPlan) {
-    return <CustomPlanScreen userId={userId} />;
   }
 
   return (
@@ -335,15 +330,14 @@ const CreateAccountModal: React.FC = () => {
                 id="email"
                 type="email"
                 placeholder="Enter your email"
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 ${
-                  email
-                    ? emailAvailable === false
-                      ? 'border-red-400 text-red-500'
-                      : emailAvailable === true
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 ${email
+                  ? emailAvailable === false
+                    ? 'border-red-400 text-red-500'
+                    : emailAvailable === true
                       ? 'border-orange-400 text-orange-500'
                       : 'border-orange-200'
-                    : 'border-gray-200'
-                }`}
+                  : 'border-gray-200'
+                  }`}
                 value={email}
                 onChange={handleEmailChange}
                 autoComplete="email"
@@ -410,15 +404,14 @@ const CreateAccountModal: React.FC = () => {
                   id="username"
                   type="text"
                   placeholder="Set username"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 ${
-                    username
-                      ? usernameAvailable === false
-                        ? 'border-red-400 text-red-500'
-                        : usernameAvailable === true
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 ${username
+                    ? usernameAvailable === false
+                      ? 'border-red-400 text-red-500'
+                      : usernameAvailable === true
                         ? 'border-orange-400 text-orange-500'
                         : 'border-orange-200'
-                      : 'border-gray-200'
-                  }`}
+                    : 'border-gray-200'
+                    }`}
                   value={username}
                   onChange={handleUsernameChange}
                   autoComplete="username"
@@ -529,11 +522,10 @@ const CreateAccountModal: React.FC = () => {
                 <button
                   type="button"
                   key={option}
-                  className={`w-full rounded-2xl px-4 py-4 text-lg font-semibold transition text-left ${
-                    goal === option
-                      ? 'bg-orange-400 text-white font-bold'
-                      : 'bg-gray-50 text-black'
-                  }`}
+                  className={`w-full rounded-2xl px-4 py-4 text-lg font-semibold transition text-left ${goal === option
+                    ? 'bg-orange-400 text-white font-bold'
+                    : 'bg-gray-50 text-black'
+                    }`}
                   onClick={() => setGoal(option)}
                 >
                   {option}
@@ -559,11 +551,10 @@ const CreateAccountModal: React.FC = () => {
                 <button
                   type="button"
                   key={opt.label}
-                  className={`w-full rounded-2xl px-4 py-4 flex items-center gap-4 transition text-left border-2 ${
-                    activityLevel === opt.label
-                      ? 'bg-orange-400 border-orange-400 text-white font-bold'
-                      : 'bg-gray-50 border-gray-200 text-black'
-                  }`}
+                  className={`w-full rounded-2xl px-4 py-4 flex items-center gap-4 transition text-left border-2 ${activityLevel === opt.label
+                    ? 'bg-orange-400 border-orange-400 text-white font-bold'
+                    : 'bg-gray-50 border-gray-200 text-black'
+                    }`}
                   onClick={() => setActivityLevel(opt.label)}
                 >
                   <span className="text-2xl mr-2">{opt.emoji}</span>
@@ -595,11 +586,10 @@ const CreateAccountModal: React.FC = () => {
                   <button
                     type="button"
                     key={opt.label}
-                    className={`flex flex-col items-center justify-center rounded-xl px-2 py-2 border text-sm font-semibold transition h-16 ${
-                      selected
-                        ? 'border-orange-400 text-orange-500 bg-orange-50'
-                        : 'border-gray-200 text-gray-700 bg-white'
-                    }`}
+                    className={`flex flex-col items-center justify-center rounded-xl px-2 py-2 border text-sm font-semibold transition h-16 ${selected
+                      ? 'border-orange-400 text-orange-500 bg-orange-50'
+                      : 'border-gray-200 text-gray-700 bg-white'
+                      }`}
                     onClick={() => toggleRestriction(opt.label)}
                   >
                     <span className="text-lg mb-1">{opt.icon}</span>
@@ -629,11 +619,10 @@ const CreateAccountModal: React.FC = () => {
                   <button
                     type="button"
                     key={opt.label}
-                    className={`flex flex-col items-center justify-center rounded-xl px-2 py-2 border text-sm font-semibold transition h-16 ${
-                      selected
-                        ? 'border-orange-400 text-orange-500 bg-orange-50'
-                        : 'border-gray-200 text-gray-700 bg-white'
-                    }`}
+                    className={`flex flex-col items-center justify-center rounded-xl px-2 py-2 border text-sm font-semibold transition h-16 ${selected
+                      ? 'border-orange-400 text-orange-500 bg-orange-50'
+                      : 'border-gray-200 text-gray-700 bg-white'
+                      }`}
                     onClick={() => toggleCuisine(opt.label)}
                   >
                     <span className="text-lg mb-1">{opt.icon}</span>
@@ -653,7 +642,7 @@ const CreateAccountModal: React.FC = () => {
           </form>
         )}
         {step === 8 && (
-          <form onSubmit={handleCreateProfile} className="pt-8">
+          <form onSubmit={e => { e.preventDefault(); if (!isStep7Disabled) setStep(9); }} className="pt-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2 text-left">Do you have any food allergies?</h2>
             <p className="text-gray-600 mb-8 text-left">Select all that apply</p>
             <div className="grid grid-cols-3 gap-3 mb-8">
@@ -666,11 +655,10 @@ const CreateAccountModal: React.FC = () => {
                   <button
                     type="button"
                     key={opt.label}
-                    className={`flex flex-col items-center justify-center rounded-xl px-2 py-2 border text-sm font-semibold transition h-16 ${
-                      selected
-                        ? 'border-orange-400 text-orange-500 bg-orange-50'
-                        : 'border-gray-200 text-gray-700 bg-white'
-                    }`}
+                    className={`flex flex-col items-center justify-center rounded-xl px-2 py-2 border text-sm font-semibold transition h-16 ${selected
+                      ? 'border-orange-400 text-orange-500 bg-orange-50'
+                      : 'border-gray-200 text-gray-700 bg-white'
+                      }`}
                     onClick={() => toggleAllergy(opt.label)}
                     disabled={disableOther || disableNone}
                   >
@@ -685,6 +673,44 @@ const CreateAccountModal: React.FC = () => {
               className={`w-full py-3 rounded-2xl text-white font-semibold text-lg transition ${isStep7Disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
               style={{ background: 'linear-gradient(90deg, #FF6A00 0%, #FF8C1A 100%)' }}
               disabled={isStep7Disabled}
+            >
+              Continue
+            </button>
+          </form>
+        )}
+        {step === 9 && (
+          <form onSubmit={handleCreateProfile} className="pt-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2 text-left">How adventurous are you with food?</h2>
+            <p className="text-gray-600 mb-8 text-left">Rate your willingness to try new foods and cuisines</p>
+            <div className="flex gap-2 mb-8 justify-center">
+              {[1, 2, 3, 4, 5].map(n => (
+                <button
+                  type="button"
+                  key={n}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold border-2 transition ${Number(adventurousness) === n
+                    ? 'bg-orange-400 text-white border-orange-500'
+                    : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+                    }`}
+                  onClick={() => setAdventurousness(n.toString())}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            <div className="text-center mb-8">
+              <div className="text-sm text-gray-600">
+                {Number(adventurousness) === 1 && "Very conservative - I prefer familiar foods"}
+                {Number(adventurousness) === 2 && "Somewhat conservative - I like some variety"}
+                {Number(adventurousness) === 3 && "Moderate - I'm open to trying new things"}
+                {Number(adventurousness) === 4 && "Adventurous - I love exploring new cuisines"}
+                {Number(adventurousness) === 5 && "Very adventurous - I'll try anything once"}
+              </div>
+            </div>
+            <button
+              type="submit"
+              className={`w-full py-3 rounded-2xl text-white font-semibold text-lg transition ${isStep8Disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              style={{ background: 'linear-gradient(90deg, #FF6A00 0%, #FF8C1A 100%)' }}
+              disabled={isStep8Disabled}
             >
               Create profile
             </button>

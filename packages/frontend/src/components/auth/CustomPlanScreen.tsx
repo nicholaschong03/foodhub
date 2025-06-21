@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import logoOrange from '../../assets/logo_orange.png';
+import { useEffect, useState } from 'react';
+// import logoOrange from '../../assets/logo_orange.png';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,12 +10,15 @@ const macroColors = {
   Fats: 'text-blue-400',
 };
 
-function getBMIColor(bmi: number) {
-  if (bmi < 18.5) return 'bg-red-400';
-  if (bmi < 25) return 'bg-green-400';
-  if (bmi < 30) return 'bg-yellow-400';
-  return 'bg-red-400';
-}
+const logoOrange = 'https://res.cloudinary.com/dsanama6k/image/upload/v1750516307/logo_orange_rf4tri.png';
+
+
+// function getBMIColor(bmi: number) {
+//   if (bmi < 18.5) return 'bg-red-400';
+//   if (bmi < 25) return 'bg-green-400';
+//   if (bmi < 30) return 'bg-yellow-400';
+//   return 'bg-red-400';
+// }
 
 function BMIScale({ bmi }: { bmi: number }) {
   // Scale: 12 (min) to 40 (max)

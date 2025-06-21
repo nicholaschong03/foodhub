@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getUserProfile, getFollowers, getFollowing } from '../../services/userService';
 import { getMyPosts, likePost, unlikePost, getLikedPosts, getSavedPosts } from '../../services/postService';
-import CustomPlanScreen from '../auth/CustomPlanScreen';
+// import CustomPlanScreen from '../auth/CustomPlanScreen';
 import EditProfileModal from './EditProfileModal';
 import PostCard from '../home/components/PostCard';
-import logoOrange from '../../assets/logo_orange.png';
+// import logoOrange from '../../assets/logo_orange.png';
 import DefaultProfileIcon from '../common/DefaultProfileIcon';
 import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import PostDetailsModal from '../home/components/PostDetailsModal';
-import { FaTrash } from 'react-icons/fa';
+// import { FaTrash } from 'react-icons/fa';
 import Header from '../common/Header';
 import { useNavigate } from 'react-router-dom';
+
+const logoOrange = 'https://res.cloudinary.com/dsanama6k/image/upload/v1750516307/logo_orange_rf4tri.png';
 
 const TABS = ['Posts', 'Saved', 'Liked', 'Health'];
 
@@ -296,8 +298,8 @@ export default function UserProfileScreen() {
                             avatar: post.authorId?.profilePicture || '',
                           },
                           likes: post.likes ?? post.likesCount ?? 0,
-                          liked: !!post.liked,
-                          saved: !!post.saved,
+                          liked: tab === 'Liked' ? true : !!post.liked,
+                          saved: tab === 'Saved' ? true : !!post.saved,
                         }}
                         showDelete={post.authorId?._id === userId || post.authorId === userId}
                         onDelete={() => {

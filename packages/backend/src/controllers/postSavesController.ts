@@ -37,7 +37,7 @@ export const getSavedPosts = async (req: AuthRequest, res: Response) => {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
 
-        const savedPosts = await postSaveService.getSavedPostsByUser(userId, page, limit);
+        const savedPosts = await postSaveService.getSavedPostsByUser(userId, page, limit, userId);
         res.status(200).json(savedPosts);
     } catch (error: any) {
         res.status(500).json({ message: "Error fetching saved posts", error: error.message });
@@ -49,7 +49,8 @@ export const getSavedPostsByUsername = async (req: AuthRequest, res: Response) =
         const { username } = req.params;
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
-        const savedPosts = await postSaveService.getSavedPostsByUsername(username, page, limit);
+        const currentUserId = req.user?.userId;
+        const savedPosts = await postSaveService.getSavedPostsByUsername(username, page, limit, currentUserId);
         res.status(200).json(savedPosts);
     } catch (error: any) {
         if (error.message === 'User not found') {

@@ -4,12 +4,15 @@ import { useLocation as useUserLocation } from '../../../hooks/useLocation';
 import { GoogleMap, MarkerF, useJsApiLoader, InfoWindow, MarkerClusterer } from '@react-google-maps/api';
 import Loading from '../../common/Loading';
 import { getPostsWithDistance, PostWithDistance } from '../../../services/postService';
-import userLocationIcon from '../../../assets/user_location_icon.png';
+// import userLocationIcon from '../../../assets/user_location_icon.png';
 import PostDetailsModal from './PostDetailsModal';
+import Header from '../../common/Header';
+
+const userLocationIcon = 'https://res.cloudinary.com/dsanama6k/image/upload/v1750516313/user_location_icon_knzfcx.png'
 
 const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 const MAP_CONTAINER_STYLE = { width: '100%', height: '80vh' };
-const DEFAULT_CENTER = { lat: 3.139, lng: 101.6869 }; // KL as fallback
+// const DEFAULT_CENTER = { lat: 3.139, lng: 101.6869 }; // KL as fallback
 const INFO_WINDOW_ZOOM = 15; // Show InfoWindow at this zoom or higher
 
 const orangeClusterIcon = (count: number) => ({
@@ -41,6 +44,10 @@ const ExploreScreen: React.FC = () => {
   const [hasCentered, setHasCentered] = React.useState(false);
   const [selectedPostId, setSelectedPostId] = React.useState<string | null>(null);
 
+  // Get userId from localStorage
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const userId = user.id || user._id;
+
   // Debounced fetch for posts
   const fetchPosts = React.useCallback((center: { lat: number; lng: number }) => {
     getPostsWithDistance(1, 10, { latitude: center.lat, longitude: center.lng }).then(res => {
@@ -48,6 +55,23 @@ const ExploreScreen: React.FC = () => {
     });
   }, []);
   const debouncedFetchPosts = useDebouncedCallback(fetchPosts, 500);
+
+  // Handler to update like count in posts state
+  const handleUpdatePostLike = async (postId: string, likesCount: number, liked: boolean) => {
+    setPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId
+          ? { ...post, likes: likesCount, liked }
+          : post
+      )
+    );
+  };
+
+  // Debug function to handle post selection from search
+  const handlePostSelect = (postId: string) => {
+    console.log('Post selected from search:', postId);
+    setSelectedPostId(postId);
+  };
 
   // Initial fetch on location load
   React.useEffect(() => {
@@ -103,6 +127,7 @@ const ExploreScreen: React.FC = () => {
           </div>
         ) : (
           <>
+            <Header onPostSelect={handlePostSelect} />
             <GoogleMap
               mapContainerStyle={MAP_CONTAINER_STYLE}
               center={(!hasCentered && location) ? { lat: location.latitude, lng: location.longitude } : undefined}
@@ -173,7 +198,7 @@ const ExploreScreen: React.FC = () => {
                     >
                       <div
                         className={`w-40 text-center cursor-pointer transition-transform duration-200 hover:scale-105 hover:shadow-lg bg-white rounded ${selectedPostId === post.id ? 'ring-2 ring-orange-400' : ''}`}
-                        onClick={() => setSelectedPostId(post.id)}
+                        onClick={() => handlePostSelect(post.id)}
                       >
                         <div className="font-semibold text-base text-gray-800 truncate mb-1">{post.menuItemName}</div>
                         <img src={post.imageUrl} alt={post.menuItemName} className="w-full h-24 object-cover rounded" />
@@ -188,6 +213,8 @@ const ExploreScreen: React.FC = () => {
               <PostDetailsModal
                 postId={selectedPostId}
                 onClose={() => setSelectedPostId(null)}
+                currentUserId={userId}
+                onLikeUpdate={handleUpdatePostLike}
               />
             )}
           </>

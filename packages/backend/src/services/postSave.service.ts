@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { PostSaveModel } from '../models/PostSaves';
 import { PostModel } from '../models/Posts';
 import { UserModel } from '../models/User';
+import { hasUserLikedPost } from './postLike.service';
 
 export async function savePost(userId: string, postId: string) {
     const post = await PostModel.findById(postId);
@@ -28,7 +29,7 @@ export async function getSavedPostIds(userId: string) {
     return (await PostSaveModel.find({ userId }).distinct('postId')).map(id => id.toString());
 }
 
-export async function getSavedPostsByUser(userId: string, page: number = 1, limit: number = 10) {
+export async function getSavedPostsByUser(userId: string, page: number = 1, limit: number = 10, currentUserId?: string) {
     const skip = (page - 1) * limit;
 
     const [saves, total] = await Promise.all([
@@ -48,16 +49,29 @@ export async function getSavedPostsByUser(userId: string, page: number = 1, limi
         PostSaveModel.countDocuments({ userId: new mongoose.Types.ObjectId(userId) })
     ]);
 
+    // Add liked status to each post
+    const postsWithLikedStatus = await Promise.all(
+        saves.map(async (save) => {
+            const post = save.postId as any;
+            const liked = currentUserId ? await hasUserLikedPost(currentUserId, post._id.toString()) : false;
+            return {
+                ...post,
+                liked,
+                saved: true // All posts in saved list are saved
+            };
+        })
+    );
+
     return {
-        posts: saves.map(save => save.postId),
+        posts: postsWithLikedStatus,
         currentPage: page,
         totalPages: Math.ceil(total / limit),
         totalSaves: total
     };
 }
 
-export async function getSavedPostsByUsername(username: string, page: number = 1, limit: number = 10) {
+export async function getSavedPostsByUsername(username: string, page: number = 1, limit: number = 10, currentUserId?: string) {
     const user = await UserModel.findOne({ username });
     if (!user) throw new Error('User not found');
-    return getSavedPostsByUser((user._id as mongoose.Types.ObjectId).toString(), page, limit);
+    return getSavedPostsByUser((user._id as mongoose.Types.ObjectId).toString(), page, limit, currentUserId);
 }

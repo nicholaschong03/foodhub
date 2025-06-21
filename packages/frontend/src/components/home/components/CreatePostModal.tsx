@@ -27,7 +27,7 @@ const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '<YOUR_GOOGLE_M
 const DEFAULT_CENTER = { lat: 3.139, lng: 101.6869 }; // Kuala Lumpur as default
 const MAP_CONTAINER_STYLE = { width: '100%', height: '300px' };
 
-const MAP_LIBRARIES = ['places'] as const;
+// const MAP_LIBRARIES = ['places'] as const;
 
 function dataURLtoFile(dataurl: string, filename: string): File {
   const arr = dataurl.split(',');
@@ -44,7 +44,6 @@ function dataURLtoFile(dataurl: string, filename: string): File {
 
 const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) => {
   const [step, setStep] = useState<'upload' | 'crop' | 'meta'>('upload');
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -133,12 +132,10 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
   const handleFile = (file: File) => {
     if (!ACCEPTED_FORMATS.includes(file.type)) {
       setError('Only PNG, JPG, JPEG, and WEBP images are allowed.');
-      setSelectedImage(null);
       setPreviewUrl(null);
       return;
     }
     setError(null);
-    setSelectedImage(file);
     setPreviewUrl(URL.createObjectURL(file));
     setStep('crop');
   };
@@ -154,7 +151,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
   };
 
   const handleClose = () => {
-    setSelectedImage(null);
     setPreviewUrl(null);
     setCroppedImage(null);
     setError(null);
@@ -169,7 +165,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
       setStep('upload');
       setError(null);
       setPreviewUrl(null);
-      setSelectedImage(null);
     }
   };
 

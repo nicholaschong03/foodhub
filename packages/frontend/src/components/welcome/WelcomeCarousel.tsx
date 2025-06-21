@@ -1,8 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import welcomeImg from '../../assets/welcome_carousel.png';
-import welcomeImg1 from '../../assets/welcome_carousel1.png';
-import welcomeImg2 from '../../assets/welcome_carousel2.png';
-import welcomeImg3 from '../../assets/welcome_carousel3.png';
+// import welcomeImg from '../../assets/welcome_carousel.png';
+// import welcomeImg1 from '../../assets/welcome_carousel1.png';
+// import welcomeImg2 from '../../assets/welcome_carousel2.png';
+// import welcomeImg3 from '../../assets/welcome_carousel3.png';
+
+const welcomeImg = 'https://res.cloudinary.com/dsanama6k/image/upload/v1750516314/welcome_carousel_rku4q0.png'
+const welcomeImg1 = 'https://res.cloudinary.com/dsanama6k/image/upload/v1750516313/welcome_carousel1_pdyxkj.png'
+const welcomeImg2 = 'https://res.cloudinary.com/dsanama6k/image/upload/v1750516315/welcome_carousel2_gpjcrn.png'
+const welcomeImg3 = 'https://res.cloudinary.com/dsanama6k/image/upload/v1750516314/welcome_carousel_rku4q0.png'
 
 interface Slide {
   title: string;
