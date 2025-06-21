@@ -110,9 +110,9 @@ const PostCard: React.FC<PostCardProps> = ({ post, onClick, showDelete, onDelete
             <span
               onClick={handleProfileClick}
               className="flex items-center space-x-1 cursor-pointer group/profile hover:text-orange-500"
-              title={post.author.username}
+              title={post.author?.username || 'View profile'}
             >
-              {post.author.avatar ? (
+              {post.author?.avatar ? (
                 <img
                   src={post.author.avatar}
                   alt={post.author.username}
@@ -124,7 +124,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onClick, showDelete, onDelete
                 </span>
               )}
               <span className="text-xs text-gray-600 truncate group-hover/profile:underline group-hover/profile:text-orange-500 transition">
-                {post.author.username}
+                {post.author?.username || 'Unknown User'}
               </span>
             </span>
           </div>

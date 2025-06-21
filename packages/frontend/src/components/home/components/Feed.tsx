@@ -164,21 +164,31 @@ const Feed: React.FC = () => {
       {/* Header with search bar */}
       <Header onPostSelect={setSelectedPostId} />
       {/* Category Tabs */}
-      <div className="flex space-x-6 mb-6 overflow-x-auto">
+      <div className="flex space-x-6 mb-6 overflow-x-auto scrollbar-hide">
         {['Recommended', 'Trending', 'Following', 'Nearby', 'Top Rated', 'Cuisines', 'Japanese', 'Healthy & Light', 'Dessert'].map((category) => (
           <button
             key={category}
             onClick={() => handleCategoryChange(category)}
-            className={`whitespace-nowrap px-4 py-2 text-sm font-medium transition-all duration-300 ease-in-out ${
-              category === selectedCategory
-                ? 'text-orange-500 border-b-2 border-orange-500'
-                : 'text-gray-600 hover:text-orange-500'
-            }`}
+            className={`whitespace-nowrap px-4 py-2 text-sm font-medium transition-all duration-300 ease-in-out ${category === selectedCategory
+              ? 'text-orange-500 border-b-2 border-orange-500'
+              : 'text-gray-600 hover:text-orange-500'
+              }`}
           >
             {category}
           </button>
         ))}
       </div>
+
+      {/* CSS to hide the scrollbar */}
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+      `}</style>
 
       {/* Location Prompt */}
       {selectedCategory === 'Nearby' && !userLocation && (
@@ -204,7 +214,7 @@ const Feed: React.FC = () => {
       {/* Posts Grid */}
       {((selectedCategory !== 'Nearby') || (selectedCategory === 'Nearby' && userLocation)) && (
         <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
-        {posts.map((post) => (
+          {posts.map((post) => (
             <PostCard
               key={post.id}
               post={{
@@ -223,8 +233,8 @@ const Feed: React.FC = () => {
               onClick={() => setSelectedPostId(post.id)}
               onLikeToggle={handleUpdatePostLike}
             />
-        ))}
-      </div>
+          ))}
+        </div>
       )}
 
       {/* Loading States */}

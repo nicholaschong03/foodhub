@@ -222,7 +222,7 @@ export default function UserProfileScreen() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-white dark:bg-gray-900">
       {/* Header with search bar */}
       <Header onPostSelect={setSelectedPostId} />
       {/* Profile header */}
@@ -230,7 +230,7 @@ export default function UserProfileScreen() {
         {/* Row: Profile picture + name/username */}
         <div className="flex flex-row items-center gap-4 w-full md:w-auto">
           <div className="relative flex flex-col items-center md:items-start">
-            <div className="w-28 h-28 rounded-full bg-orange-100 flex items-center justify-center border-4 border-orange-200 overflow-hidden">
+            <div className="w-28 h-28 rounded-full bg-orange-100 dark:bg-gray-800 flex items-center justify-center border-4 border-orange-200 dark:border-gray-700 overflow-hidden">
               {user.profilePicture ? (
                 <img src={user.profilePicture} alt={user.username} className="w-full h-full object-cover rounded-full" />
               ) : (
@@ -239,15 +239,15 @@ export default function UserProfileScreen() {
             </div>
           </div>
           <div className="flex flex-col items-start">
-            <div className="text-2xl font-bold text-gray-900 truncate max-w-xs">{user.name}</div>
-            <div className="text-gray-500 text-lg">@{user.username}</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white truncate max-w-xs">{user.name}</div>
+            <div className="text-gray-500 dark:text-gray-400 text-lg">@{user.username}</div>
           </div>
         </div>
         {/* Stats and Edit Profile row */}
         <div className="flex flex-row items-center gap-4 mt-4 md:mt-0 w-full flex-wrap">
-          <span className="text-gray-700 text-base"><span className="font-bold">{user.postCount || 0}</span> posts</span>
-          <span className="text-gray-700 text-base cursor-pointer hover:underline" onClick={() => setShowListModal('followers')}><span className="font-bold">{followersCount}</span> followers</span>
-          <span className="text-gray-700 text-base cursor-pointer hover:underline" onClick={() => setShowListModal('following')}><span className="font-bold">{followingCount}</span> following</span>
+          <span className="text-gray-700 dark:text-gray-300 text-base"><span className="font-bold text-gray-800 dark:text-gray-100">{user.postCount || 0}</span> posts</span>
+          <span className="text-gray-700 dark:text-gray-300 text-base cursor-pointer hover:underline" onClick={() => setShowListModal('followers')}><span className="font-bold text-gray-800 dark:text-gray-100">{followersCount}</span> followers</span>
+          <span className="text-gray-700 dark:text-gray-300 text-base cursor-pointer hover:underline" onClick={() => setShowListModal('following')}><span className="font-bold text-gray-800 dark:text-gray-100">{followingCount}</span> following</span>
           <button
             className="ml-2 px-4 py-1 rounded-full bg-orange-500 text-white font-semibold text-base hover:bg-orange-600 transition h-9 text-sm"
             onClick={() => setShowEdit(true)}
@@ -257,11 +257,11 @@ export default function UserProfileScreen() {
         </div>
       </div>
       {/* Tabs */}
-      <div className="flex justify-center gap-4 border-b border-gray-200 mb-6">
+      <div className="flex justify-center gap-4 border-b border-gray-200 dark:border-gray-700 mb-6">
         {TABS.map((t) => (
           <button
             key={t}
-            className={`px-4 py-2 font-semibold text-lg border-b-2 transition ${tab === t ? 'border-orange-500 text-orange-500' : 'border-transparent text-gray-500 hover:text-orange-400'}`}
+            className={`px-4 py-2 font-semibold text-lg border-b-2 transition ${tab === t ? 'border-orange-500 text-orange-500' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-orange-400 dark:hover:text-orange-500'}`}
             onClick={() => setTab(t)}
           >
             {t}

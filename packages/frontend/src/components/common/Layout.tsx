@@ -12,11 +12,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isPostModalOpen, setIsPostModalOpen] = React.useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Desktop Layout */}
       <div className="hidden md:flex">
         {/* Left Navigation Panel */}
-        <div className="w-64 bg-white shadow-sm fixed left-0 top-0 h-full z-10">
+        <div className="w-64 bg-white dark:bg-gray-900 shadow-sm fixed left-0 top-0 h-full z-10">
           <DesktopNavigation />
         </div>
 

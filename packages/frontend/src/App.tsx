@@ -11,6 +11,7 @@ import { checkAuthStatus, User } from './services/auth.service';
 import Loading from './components/common/Loading';
 import OtherUserProfileScreen from './components/profile/OtherUserProfileScreen';
 import ExploreScreen from './components/home/components/ExploreScreen';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -31,54 +32,56 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/welcome" element={
-          user ? <Navigate to="/feed" replace /> : <WelcomeScreen />
-        } />
-        <Route path="/auth/login" element={
-          user ? <Navigate to="/feed" replace /> : <AuthScreen />
-        } />
-        <Route path="/auth/register" element={
-          user ? <Navigate to="/feed" replace /> : <CreateAccountModal />
-        } />
+    <ThemeProvider>
+      <Router>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/welcome" element={
+            user ? <Navigate to="/feed" replace /> : <WelcomeScreen />
+          } />
+          <Route path="/auth/login" element={
+            user ? <Navigate to="/feed" replace /> : <AuthScreen />
+          } />
+          <Route path="/auth/register" element={
+            user ? <Navigate to="/feed" replace /> : <CreateAccountModal />
+          } />
 
-        {/* Protected routes */}
-        <Route path="/feed" element={
-          <ProtectedRoute>
-            <HomeScreen />
-          </ProtectedRoute>
-        } />
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <HomeScreen>
-              <UserProfileScreen />
-            </HomeScreen>
-          </ProtectedRoute>
-        } />
-        <Route path="/profile/:username" element={
-          <ProtectedRoute>
-            <HomeScreen>
-              <OtherUserProfileScreen />
-            </HomeScreen>
-          </ProtectedRoute>
-        } />
-        <Route path="/explore" element={
-          <ProtectedRoute>
-            <ExploreScreen />
-          </ProtectedRoute>
-        } />
+          {/* Protected routes */}
+          <Route path="/feed" element={
+            <ProtectedRoute>
+              <HomeScreen />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <HomeScreen>
+                <UserProfileScreen />
+              </HomeScreen>
+            </ProtectedRoute>
+          } />
+          <Route path="/profile/:username" element={
+            <ProtectedRoute>
+              <HomeScreen>
+                <OtherUserProfileScreen />
+              </HomeScreen>
+            </ProtectedRoute>
+          } />
+          <Route path="/explore" element={
+            <ProtectedRoute>
+              <ExploreScreen />
+            </ProtectedRoute>
+          } />
 
-        {/* Redirect root to feed if authenticated, welcome if not */}
-        <Route path="/" element={
-          user ? <Navigate to="/feed" replace /> : <Navigate to="/welcome" replace />
-        } />
+          {/* Redirect root to feed if authenticated, welcome if not */}
+          <Route path="/" element={
+            user ? <Navigate to="/feed" replace /> : <Navigate to="/welcome" replace />
+          } />
 
-        {/* 404 route */}
-        <Route path="*" element={<NotFoundScreen />} />
-      </Routes>
-    </Router>
+          {/* 404 route */}
+          <Route path="*" element={<NotFoundScreen />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }
 

@@ -30,7 +30,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({ onPostClick }) => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-20">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 z-20">
       <div className="flex items-center justify-around py-2">
         {navigationItems.map((item) => {
           const isActive =
@@ -40,7 +40,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({ onPostClick }) => {
           return (
             <button
               key={item.label}
-              className={`flex flex-col items-center space-y-1 py-2 px-3 transition-colors ${isActive ? 'text-orange-500' : 'text-gray-600 hover:text-orange-500'
+              className={`flex flex-col items-center space-y-1 py-2 px-3 transition-colors ${isActive ? 'text-orange-500' : 'text-gray-600 dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400'
                 }`}
               onClick={() => handleNavClick(item.label, item.path)}
             >

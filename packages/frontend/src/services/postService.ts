@@ -140,62 +140,22 @@ export async function hasSavedPost(postId: string) {
     return res.data.hasSaved;
 }
 
-export async function getLikedPosts(page = 1, limit = 10): Promise<GetPostsResponse> {
+export async function getLikedPosts(page = 1, limit = 10) {
     const token = localStorage.getItem('token');
     const res = await axios.get('/api/posts/liked', {
         params: { page, limit },
         headers: { Authorization: `Bearer ${token}` },
     });
-    // Map backend response to frontend Post type
-    const posts: Post[] = res.data.posts.map((post: any) => ({
-        id: post._id,
-        title: post.title,
-        imageUrl: post.postPictureUrl,
-        menuItemName: post.menuItemName,
-        author: {
-            name: post.authorId?.username || 'Unknown',
-            avatar: post.authorId?.profilePicture || '',
-        },
-        likes: post.likesCount || 0,
-        liked: true, // These are liked posts
-        saved: !!post.saved,
-    }));
-    return {
-        posts,
-        total: res.data.totalLikes,
-        page: res.data.currentPage,
-        pageSize: limit,
-        totalPages: res.data.totalPages,
-    };
+    return res.data;
 }
 
-export async function getSavedPosts(page = 1, limit = 10): Promise<GetPostsResponse> {
+export async function getSavedPosts(page = 1, limit = 10) {
     const token = localStorage.getItem('token');
     const res = await axios.get('/api/posts/saved', {
         params: { page, limit },
         headers: { Authorization: `Bearer ${token}` },
     });
-    // Map backend response to frontend Post type
-    const posts: Post[] = res.data.posts.map((post: any) => ({
-        id: post._id,
-        title: post.title,
-        imageUrl: post.postPictureUrl,
-        menuItemName: post.menuItemName,
-        author: {
-            name: post.authorId?.username || 'Unknown',
-            avatar: post.authorId?.profilePicture || '',
-        },
-        likes: post.likesCount || 0,
-        liked: !!post.liked,
-        saved: true, // These are saved posts
-    }));
-    return {
-        posts,
-        total: res.data.totalSaves,
-        page: res.data.currentPage,
-        pageSize: limit,
-        totalPages: res.data.totalPages,
-    };
+    return res.data;
 }
 
 export async function getPostsByUsername(username: string, page = 1, limit = 10) {

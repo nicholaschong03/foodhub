@@ -217,7 +217,7 @@ export default function OtherUserProfileScreen() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-white dark:bg-gray-900">
       {/* Header with search bar */}
       <Header onPostSelect={setSelectedPostId} />
       {/* Profile header */}
@@ -225,7 +225,7 @@ export default function OtherUserProfileScreen() {
         {/* Row: Profile picture + name/username */}
         <div className="flex flex-row items-center gap-4 w-full md:w-auto">
           <div className="relative flex flex-col items-center md:items-start">
-            <div className="w-28 h-28 rounded-full bg-orange-100 flex items-center justify-center border-4 border-orange-200 overflow-hidden">
+            <div className="w-28 h-28 rounded-full bg-orange-100 dark:bg-gray-800 flex items-center justify-center border-4 border-orange-200 dark:border-gray-700 overflow-hidden">
               {user.profilePicture ? (
                 <img src={user.profilePicture} alt={user.username} className="w-full h-full object-cover rounded-full" />
               ) : (
@@ -234,19 +234,19 @@ export default function OtherUserProfileScreen() {
             </div>
           </div>
           <div className="flex flex-col items-start">
-            <div className="text-2xl font-bold text-gray-900 truncate max-w-xs">{user.name}</div>
-            <div className="text-gray-500 text-lg">@{user.username}</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white truncate max-w-xs">{user.name}</div>
+            <div className="text-gray-500 dark:text-gray-400 text-lg">@{user.username}</div>
           </div>
         </div>
         {/* Stats and Follow/Unfollow row */}
         <div className="flex flex-row items-center gap-4 mt-4 md:mt-0 w-full flex-wrap">
-          <span className="text-gray-700 text-base"><span className="font-bold">{user.postCount || 0}</span> posts</span>
-          <span className="text-gray-700 text-base cursor-pointer hover:underline" onClick={() => setShowListModal('followers')}><span className="font-bold">{followersCount}</span> followers</span>
-          <span className="text-gray-700 text-base cursor-pointer hover:underline" onClick={() => setShowListModal('following')}><span className="font-bold">{followingCount}</span> following</span>
+          <span className="text-gray-700 dark:text-gray-300 text-base"><span className="font-bold text-gray-800 dark:text-gray-100">{user.postCount || 0}</span> posts</span>
+          <span className="text-gray-700 dark:text-gray-300 text-base cursor-pointer hover:underline" onClick={() => setShowListModal('followers')}><span className="font-bold text-gray-800 dark:text-gray-100">{followersCount}</span> followers</span>
+          <span className="text-gray-700 dark:text-gray-300 text-base cursor-pointer hover:underline" onClick={() => setShowListModal('following')}><span className="font-bold text-gray-800 dark:text-gray-100">{followingCount}</span> following</span>
           {user && user._id !== (JSON.parse(localStorage.getItem('user') || '{}').id || JSON.parse(localStorage.getItem('user') || '{}')._id) && (
             isFollowing ? (
               <button
-                className="ml-2 px-4 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-base hover:bg-gray-300 transition h-9 text-sm"
+                className="ml-2 px-4 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-base hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition h-9 text-sm"
                 onClick={handleUnfollow}
                 disabled={followLoading}
               >
@@ -265,11 +265,11 @@ export default function OtherUserProfileScreen() {
         </div>
       </div>
       {/* Tabs */}
-      <div className="flex justify-center gap-4 border-b border-gray-200 mb-6">
+      <div className="flex justify-center gap-4 border-b border-gray-200 dark:border-gray-700 mb-6">
         {TABS.map((t) => (
           <button
             key={t}
-            className={`px-4 py-2 font-semibold text-lg border-b-2 transition ${tab === t ? 'border-orange-500 text-orange-500' : 'border-transparent text-gray-500 hover:text-orange-400'}`}
+            className={`px-4 py-2 font-semibold text-lg border-b-2 transition ${tab === t ? 'border-orange-500 text-orange-500' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-orange-400 dark:hover:text-orange-500'}`}
             onClick={() => setTab(t)}
           >
             {t}
@@ -348,23 +348,23 @@ export default function OtherUserProfileScreen() {
                   </div>
                 ) : customPlan ? (
                   <>
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 text-center">User's Custom Health Plan</h2>
+                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2 text-center">User's Custom Health Plan</h2>
                     {/* User Info Row */}
                     <div className="flex flex-row justify-center gap-8 mb-6 animate-fade-in">
                       <div className="flex flex-col items-center">
                         <span className="text-3xl">🎂</span>
-                        <span className="text-gray-500 text-sm">Age</span>
-                        <span className="font-bold text-lg text-gray-900">{user.dob ? new Date().getFullYear() - new Date(user.dob).getFullYear() : '-'}</span>
+                        <span className="text-gray-500 dark:text-gray-400 text-sm">Age</span>
+                        <span className="font-bold text-lg text-gray-900 dark:text-gray-100">{user.dob ? new Date().getFullYear() - new Date(user.dob).getFullYear() : '-'}</span>
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="text-3xl">⚖️</span>
-                        <span className="text-gray-500 text-sm">Weight</span>
-                        <span className="font-bold text-lg text-gray-900">{user.weight ? `${user.weight} kg` : '-'}</span>
+                        <span className="text-gray-500 dark:text-gray-400 text-sm">Weight</span>
+                        <span className="font-bold text-lg text-gray-900 dark:text-gray-100">{user.weight ? `${user.weight} kg` : '-'}</span>
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="text-3xl">📏</span>
-                        <span className="text-gray-500 text-sm">Height</span>
-                        <span className="font-bold text-lg text-gray-900">{user.height ? `${user.height} cm` : '-'}</span>
+                        <span className="text-gray-500 dark:text-gray-400 text-sm">Height</span>
+                        <span className="font-bold text-lg text-gray-900 dark:text-gray-100">{user.height ? `${user.height} cm` : '-'}</span>
                       </div>
                     </div>
                     {/* Animated BMI Scale */}
@@ -375,36 +375,36 @@ export default function OtherUserProfileScreen() {
                     >
                       <BMIScale bmi={parseFloat(customPlan.bmi)} />
                     </motion.div>
-                    <div className="bg-orange-50 rounded-2xl p-4 md:p-8 mb-6 mt-6">
-                      <div className="text-lg font-semibold text-gray-900 mb-8">Daily recommendation</div>
+                    <div className="bg-orange-50 dark:bg-gray-800 rounded-2xl p-4 md:p-8 mb-6 mt-6">
+                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-8">Daily recommendation</div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white rounded-xl p-4 flex flex-col items-center shadow-sm">
+                        <div className="bg-white dark:bg-gray-700 rounded-xl p-4 flex flex-col items-center shadow-sm">
                           <div className="text-2xl mb-1 text-orange-500">🔥</div>
-                          <div className="text-gray-700 text-sm">Calories</div>
-                          <div className="font-bold text-xl text-gray-900">{customPlan.calories}<span className="text-sm font-normal text-gray-500"></span></div>
+                          <div className="text-gray-700 dark:text-gray-300 text-sm">Calories</div>
+                          <div className="font-bold text-xl text-gray-900 dark:text-gray-100">{customPlan.calories}<span className="text-sm font-normal text-gray-500 dark:text-gray-400"></span></div>
                         </div>
-                        <div className="bg-white rounded-xl p-4 flex flex-col items-center shadow-sm">
+                        <div className="bg-white dark:bg-gray-700 rounded-xl p-4 flex flex-col items-center shadow-sm">
                           <div className="text-2xl mb-1 text-orange-400">🌾</div>
-                          <div className="text-gray-700 text-sm">Carbs</div>
-                          <div className="font-bold text-xl text-gray-900">{customPlan.carbs}<span className="text-sm font-normal text-gray-500">g</span></div>
+                          <div className="text-gray-700 dark:text-gray-300 text-sm">Carbs</div>
+                          <div className="font-bold text-xl text-gray-900 dark:text-gray-100">{customPlan.carbs}<span className="text-sm font-normal text-gray-500 dark:text-gray-400">g</span></div>
                         </div>
-                        <div className="bg-white rounded-xl p-4 flex flex-col items-center shadow-sm">
+                        <div className="bg-white dark:bg-gray-700 rounded-xl p-4 flex flex-col items-center shadow-sm">
                           <div className="text-2xl mb-1 text-red-400">🍗</div>
-                          <div className="text-gray-700 text-sm">Protein</div>
-                          <div className="font-bold text-xl text-gray-900">{customPlan.protein}<span className="text-sm font-normal text-gray-500">g</span></div>
+                          <div className="text-gray-700 dark:text-gray-300 text-sm">Protein</div>
+                          <div className="font-bold text-xl text-gray-900 dark:text-gray-100">{customPlan.protein}<span className="text-sm font-normal text-gray-500 dark:text-gray-400">g</span></div>
                         </div>
-                        <div className="bg-white rounded-xl p-4 flex flex-col items-center shadow-sm">
+                        <div className="bg-white dark:bg-gray-700 rounded-xl p-4 flex flex-col items-center shadow-sm">
                           <div className="text-2xl mb-1 text-blue-400">🥑</div>
-                          <div className="text-gray-700 text-sm">Fats</div>
-                          <div className="font-bold text-xl text-gray-900">{customPlan.fats}<span className="text-sm font-normal text-gray-500">g</span></div>
+                          <div className="text-gray-700 dark:text-gray-300 text-sm">Fats</div>
+                          <div className="font-bold text-xl text-gray-900 dark:text-gray-100">{customPlan.fats}<span className="text-sm font-normal text-gray-500 dark:text-gray-400">g</span></div>
                         </div>
                       </div>
                       <div className="mt-6 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="text-pink-400 text-xl">💖</span>
-                          <span className="text-gray-700 text-sm">Health Score</span>
+                          <span className="text-gray-700 dark:text-gray-300 text-sm">Health Score</span>
                         </div>
-                        <div className="text-gray-900 font-bold text-lg">{customPlan.healthScore}/10</div>
+                        <div className="text-gray-900 dark:text-gray-100 font-bold text-lg">{customPlan.healthScore}/10</div>
                       </div>
                       <div className="w-full h-2 bg-gray-200 rounded-full mt-2">
                         <div
@@ -437,19 +437,19 @@ export default function OtherUserProfileScreen() {
       {/* Follower/Following List Modal */}
       {showListModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full text-center relative">
-            <button onClick={() => setShowListModal(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
-            <div className="text-xl font-semibold mb-4">{showListModal === 'followers' ? 'Followers' : 'Following'}</div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 max-w-md w-full text-center relative">
+            <button onClick={() => setShowListModal(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white text-2xl font-bold">&times;</button>
+            <div className="text-xl font-semibold mb-4 dark:text-white">{showListModal === 'followers' ? 'Followers' : 'Following'}</div>
             {listLoading ? (
-              <div className="text-gray-400 py-8">Loading…</div>
+              <div className="text-gray-400 dark:text-gray-500 py-8">Loading…</div>
             ) : listUsers.length === 0 ? (
-              <div className="text-gray-400 py-8">No users found.</div>
+              <div className="text-gray-400 dark:text-gray-500 py-8">No users found.</div>
             ) : (
-              <div className="divide-y">
+              <div className="divide-y dark:divide-gray-700">
                 {listUsers.map((u: any) => (
                   <div
                     key={u._id}
-                    className="flex items-center gap-3 py-3 cursor-pointer hover:bg-gray-100 rounded-lg px-2"
+                    className="flex items-center gap-3 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg px-2"
                     onClick={() => {
                       setShowListModal(null);
                       navigate(`/profile/${u.username}`);
@@ -457,8 +457,8 @@ export default function OtherUserProfileScreen() {
                   >
                     <img src={u.profilePicture || '/default-avatar.png'} alt={u.username} className="w-10 h-10 rounded-full object-cover" />
                     <div className="flex flex-col items-start">
-                      <span className="font-semibold text-gray-800">{u.name || u.username}</span>
-                      <span className="text-gray-500 text-sm">@{u.username}</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">{u.name || u.username}</span>
+                      <span className="text-gray-500 dark:text-gray-400 text-sm">@{u.username}</span>
                     </div>
                   </div>
                 ))}
