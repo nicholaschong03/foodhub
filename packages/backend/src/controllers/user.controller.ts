@@ -31,7 +31,7 @@ export class UserController {
                     userId: user._id,
                     email: user.email
                 },
-                JWT_SECRET,
+                JWT_SECRET as string,
                 { expiresIn: '24h' }
             );
 
