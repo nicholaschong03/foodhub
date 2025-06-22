@@ -6,7 +6,7 @@ import EditProfileModal from './EditProfileModal';
 import PostCard from '../home/components/PostCard';
 // import logoOrange from '../../assets/logo_orange.png';
 import DefaultProfileIcon from '../common/DefaultProfileIcon';
-import axios from 'axios';
+import axiosInstance from '../../services/axios.config';
 import { AnimatePresence, motion } from 'framer-motion';
 import PostDetailsModal from '../home/components/PostDetailsModal';
 // import { FaTrash } from 'react-icons/fa';
@@ -128,7 +128,7 @@ export default function UserProfileScreen() {
   useEffect(() => {
     if (tab === 'Health' && userId) {
       setLoadingPlan(true);
-      axios.get(`/api/users/${userId}/custom-plan`).then(res => {
+      axiosInstance.get(`/users/${userId}/custom-plan`).then(res => {
         setCustomPlan(res.data.data);
         setLoadingPlan(false);
       }).catch(() => setLoadingPlan(false));
@@ -429,10 +429,7 @@ export default function UserProfileScreen() {
                 className="px-4 py-2 rounded font-medium bg-orange-500 text-white hover:bg-orange-600"
                 onClick={async () => {
                   try {
-                    const token = localStorage.getItem('token');
-                    await axios.delete(`/api/posts/${postToDelete._id || postToDelete.id}`, {
-                      headers: { Authorization: `Bearer ${token}` },
-                    });
+                    await axiosInstance.delete(`/posts/${postToDelete._id || postToDelete.id}`);
                     setPosts(posts.filter(p => (p._id || p.id) !== (postToDelete._id || postToDelete.id)));
                     setShowDeleteModal(false);
                     setPostToDelete(null);

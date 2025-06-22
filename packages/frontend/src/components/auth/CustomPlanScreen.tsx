@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 // import logoOrange from '../../assets/logo_orange.png';
-import axios from 'axios';
+import axiosInstance from '../../services/axios.config';
 import { useNavigate } from 'react-router-dom';
 
 const macroColors = {
@@ -51,7 +51,7 @@ export default function CustomPlanScreen({ userId }: { userId: string }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get(`/api/users/${userId}/custom-plan`)
+    axiosInstance.get(`/users/${userId}/custom-plan`)
       .then(res => {
         setPlan(res.data.data);
         setLoading(false);

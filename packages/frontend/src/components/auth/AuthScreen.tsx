@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { login } from '../../services/auth.service';
 
 const AuthScreen: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -17,15 +17,9 @@ const AuthScreen: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('/api/auth/login', {
-        email,
-        password
-      });
+      await login(email, password);
 
-      // Store the token in localStorage
-      localStorage.setItem('token', response.data.token);
-      // Store user info if needed
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      // The login service handles storing the token and user data.
       // Navigate to feed
       navigate('/feed');
     } catch (err: any) {

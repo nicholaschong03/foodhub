@@ -6,7 +6,7 @@ import { followUser, unfollowUser, isFollowing as checkIsFollowing } from '../..
 import PostCard from '../home/components/PostCard';
 // import logoOrange from '../../assets/logo_orange.png';
 import DefaultProfileIcon from '../common/DefaultProfileIcon';
-import axios from 'axios';
+import axiosInstance from '../../services/axios.config';
 import { AnimatePresence, motion } from 'framer-motion';
 import PostDetailsModal from '../home/components/PostDetailsModal';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -80,7 +80,7 @@ export default function OtherUserProfileScreen() {
     if (tab === 'Health' && user && user._id) {
       setLoadingPlan(true);
       console.log('Custom plan API call userId:', user._id, 'username:', username);
-      axios.get(`/api/users/${user._id}/custom-plan`).then(res => {
+      axiosInstance.get(`/users/${user._id}/custom-plan`).then(res => {
         setCustomPlan(res.data.data);
         setLoadingPlan(false);
       }).catch(() => setLoadingPlan(false));

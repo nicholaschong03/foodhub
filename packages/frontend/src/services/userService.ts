@@ -1,64 +1,48 @@
-import axios from 'axios';
-
-function getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-}
+import axiosInstance from './axios.config';
 
 export async function getUserProfile(userId: string) {
-    const res = await axios.get(`/api/users/${userId}`, { headers: getAuthHeaders() });
+    const res = await axiosInstance.get(`/users/${userId}`);
     return res.data.data;
 }
 
 export async function updateUserProfile(userId: string, data: any) {
     let payload = data;
-    let headers = getAuthHeaders();
 
     if (data.profilePicture && data.profilePicture instanceof File) {
         payload = new FormData();
         Object.keys(data).forEach(key => {
             payload.append(key, data[key]);
         });
-        headers = getAuthHeaders();
     }
 
-    const res = await axios.put(`/api/users/${userId}`, payload, { headers });
+    const res = await axiosInstance.put(`/users/${userId}`, payload);
     return res.data.data;
 }
 
 export async function getUserProfileByUsername(username: string) {
-    const res = await axios.get(`/api/users/username/${username}`);
+    const res = await axiosInstance.get(`/users/username/${username}`);
     return res.data.data;
 }
 
 export async function followUser(userId: string) {
-    const token = localStorage.getItem('token');
-    await axios.post(`/api/users/${userId}/follow`, {}, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    await axiosInstance.post(`/users/${userId}/follow`);
 }
 
 export async function unfollowUser(userId: string) {
-    const token = localStorage.getItem('token');
-    await axios.delete(`/api/users/${userId}/follow`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    await axiosInstance.delete(`/users/${userId}/follow`);
 }
 
 export async function isFollowing(userId: string): Promise<boolean> {
-    const token = localStorage.getItem('token');
-    const res = await axios.get(`/api/users/${userId}/is-following`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const res = await axiosInstance.get(`/users/${userId}/is-following`);
     return res.data.following;
 }
 
 export async function getFollowers(userId: string, page = 1, limit = 10) {
-    const res = await axios.get(`/api/users/${userId}/followers`, { params: { page, limit } });
+    const res = await axiosInstance.get(`/users/${userId}/followers`, { params: { page, limit } });
     return res.data;
 }
 
 export async function getFollowing(userId: string, page = 1, limit = 10) {
-    const res = await axios.get(`/api/users/${userId}/following`, { params: { page, limit } });
+    const res = await axiosInstance.get(`/users/${userId}/following`, { params: { page, limit } });
     return res.data;
 }

@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosInstance from './axios.config';
 
 export interface Author {
     username: string;
@@ -40,16 +40,9 @@ export interface GetPostsWithDistanceResponse extends GetPostsResponse {
     posts: PostWithDistance[];
 }
 
-function getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
 export async function getPosts(page = 1, limit = 10): Promise<GetPostsResponse> {
-    const token = localStorage.getItem('token');
-    const res = await axios.get('/api/posts/recommended', {
+    const res = await axiosInstance.get('/posts/recommended', {
         params: { page, limit },
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     // Map backend response to frontend Post type
     const posts: Post[] = res.data.posts.map((post: any) => ({
@@ -76,100 +69,73 @@ export async function getPosts(page = 1, limit = 10): Promise<GetPostsResponse> 
 }
 
 export async function getPostDetails(postId: string) {
-    const token = localStorage.getItem('token');
-    const res = await axios.get(`/api/posts/${postId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const res = await axiosInstance.get(`/posts/${postId}`);
     return res.data.data;
 }
 
 export async function getMyPosts(page = 1, limit = 10) {
-    const token = localStorage.getItem('token');
-    const res = await axios.get('/api/posts/my-posts', {
+    const res = await axiosInstance.get('/posts/my-posts', {
         params: { page, limit },
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return res.data;
 }
 
 export async function likePost(postId: string) {
-    const token = localStorage.getItem('token');
-    const res = await axios.post(`/api/posts/${postId}/like`, {}, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const res = await axiosInstance.post(`/posts/${postId}/like`);
     return res.data;
 }
 
 export async function unlikePost(postId: string) {
-    const token = localStorage.getItem('token');
-    const res = await axios.delete(`/api/posts/${postId}/like`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const res = await axiosInstance.delete(`/posts/${postId}/like`);
     return res.data;
 }
 
 export async function hasLikedPost(postId: string) {
-    const token = localStorage.getItem('token');
-    const res = await axios.get(`/api/posts/${postId}/like`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const res = await axiosInstance.get(`/posts/${postId}/like`);
     return res.data.hasLiked;
 }
 
 export async function savePost(postId: string) {
-    const token = localStorage.getItem('token');
-    const res = await axios.post(`/api/posts/${postId}/save`, {}, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const res = await axiosInstance.post(`/posts/${postId}/save`);
     return res.data;
 }
 
 export async function unsavePost(postId: string) {
-    const token = localStorage.getItem('token');
-    const res = await axios.delete(`/api/posts/${postId}/save`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const res = await axiosInstance.delete(`/posts/${postId}/save`);
     return res.data;
 }
 
 export async function hasSavedPost(postId: string) {
-    const token = localStorage.getItem('token');
-    const res = await axios.get(`/api/posts/${postId}/save`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const res = await axiosInstance.get(`/posts/${postId}/save`);
     return res.data.hasSaved;
 }
 
 export async function getLikedPosts(page = 1, limit = 10) {
-    const token = localStorage.getItem('token');
-    const res = await axios.get('/api/posts/liked', {
+    const res = await axiosInstance.get('/posts/liked', {
         params: { page, limit },
-        headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;
 }
 
 export async function getSavedPosts(page = 1, limit = 10) {
-    const token = localStorage.getItem('token');
-    const res = await axios.get('/api/posts/saved', {
+    const res = await axiosInstance.get('/posts/saved', {
         params: { page, limit },
-        headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;
 }
 
 export async function getPostsByUsername(username: string, page = 1, limit = 10) {
-    const res = await axios.get(`/api/posts/user/${username}`, { params: { page, limit }, headers: getAuthHeaders() });
+    const res = await axiosInstance.get(`/posts/user/${username}`, { params: { page, limit } });
     return res.data;
 }
 
 export async function getLikedPostsByUsername(username: string, page = 1, limit = 10) {
-    const res = await axios.get(`/api/posts/liked/${username}`, { params: { page, limit }, headers: getAuthHeaders() });
+    const res = await axiosInstance.get(`/posts/liked/${username}`, { params: { page, limit } });
     return res.data;
 }
 
 export async function getSavedPostsByUsername(username: string, page = 1, limit = 10) {
-    const res = await axios.get(`/api/posts/saved/${username}`, { params: { page, limit }, headers: getAuthHeaders() });
+    const res = await axiosInstance.get(`/posts/saved/${username}`, { params: { page, limit } });
     return res.data;
 }
 
@@ -178,15 +144,13 @@ export async function getPostsWithDistance(
     limit = 10,
     location: { latitude: number; longitude: number }
 ): Promise<GetPostsWithDistanceResponse> {
-    const token = localStorage.getItem('token');
-    const res = await axios.get('/api/posts/nearby', {
+    const res = await axiosInstance.get('/posts/nearby', {
         params: {
             page,
             limit,
             latitude: location.latitude,
             longitude: location.longitude
         },
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
 
     // Map backend response to frontend Post type with distance
@@ -223,10 +187,7 @@ export async function getPostsWithDistance(
 }
 
 export async function getComments(postId: string) {
-    const token = localStorage.getItem('token');
-    const res = await axios.get(`/api/posts/${postId}/comments`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const res = await axiosInstance.get(`/posts/${postId}/comments`);
     return res.data.map((comment: any) => ({
         id: comment._id,
         userId: {
@@ -239,9 +200,6 @@ export async function getComments(postId: string) {
 }
 
 export async function addComment(postId: string, text: string) {
-    const token = localStorage.getItem('token');
-    const res = await axios.post(`/api/posts/${postId}/comments`, { text }, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const res = await axiosInstance.post(`/posts/${postId}/comments`, { text });
     return res.data;
 }

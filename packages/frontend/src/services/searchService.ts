@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosInstance from './axios.config';
 
 export interface SearchUser {
     id: string;
@@ -32,11 +32,6 @@ export interface SearchResults {
 }
 
 export const search = async (query: string, page: number = 1, limit: number = 5): Promise<SearchResults> => {
-    const token = localStorage.getItem('token');
-    const response = await axios.get(`/api/search?query=${encodeURIComponent(query)}&page=${page}&limit=${limit}`, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    });
+    const response = await axiosInstance.get(`/search?query=${encodeURIComponent(query)}&page=${page}&limit=${limit}`);
     return response.data;
 };

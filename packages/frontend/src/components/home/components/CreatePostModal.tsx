@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import Cropper from 'react-easy-crop';
 import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
-import axios from 'axios';
+import axiosInstance from '../../../services/axios.config';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -259,8 +259,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
     if (!isFormValid) return;
     setIsPublishing(true);
     try {
-      const token = localStorage.getItem('token');
-      console.log('Token from localStorage:', token); // DEBUG: log token for troubleshooting
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const formData = new FormData();
 
@@ -291,9 +289,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
         formData.append('authorId', user.id);
       }
 
-      await axios.post('/api/posts/create-post', formData, {
+      await axiosInstance.post('/posts/create-post', formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       });

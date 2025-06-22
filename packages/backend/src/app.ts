@@ -9,6 +9,7 @@ const app = express();
 
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:4173', // Vite preview server
   'https://sage-manatee-1d2d66.netlify.app',
   process.env.FRONTEND_URL || 'http://localhost:5173'
 ].filter(Boolean);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 // import logoOrange from '../../assets/logo_orange.png';
-import axios from 'axios';
+import axiosInstance from '../../services/axios.config';
 import { useNavigate } from 'react-router-dom';
 import { register } from '../../services/auth.service';
 
@@ -145,7 +145,7 @@ const CreateAccountModal: React.FC = () => {
       setCheckingUsername(true);
       // Real API call to check username availability
       usernameCheckTimeout.current = setTimeout(() => {
-        axios.get(`/api/users/check-username?username=${encodeURIComponent(value)}`)
+        axiosInstance.get(`/users/check-username?username=${encodeURIComponent(value)}`)
           .then(res => {
             setUsernameAvailable(res.data.available);
             setCheckingUsername(false);
@@ -180,7 +180,7 @@ const CreateAccountModal: React.FC = () => {
     if (value && emailRegex.test(value)) {
       setCheckingEmail(true);
       emailCheckTimeout.current = setTimeout(() => {
-        axios.get(`/api/users/check-email?email=${encodeURIComponent(value)}`)
+        axiosInstance.get(`/users/check-email?email=${encodeURIComponent(value)}`)
           .then(res => {
             setEmailAvailable(res.data.available);
             setCheckingEmail(false);
