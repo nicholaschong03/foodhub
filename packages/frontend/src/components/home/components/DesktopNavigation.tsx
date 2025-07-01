@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
 import CreatePostModal from './CreatePostModal';
 import MoreModal from '../../common/MoreModal';
+import AIFoodScannerModal from './AIFoodScannerModal';
+import AIFoodResultsModal from './AIFoodResultsModal';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const DesktopNavigation: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMoreModalOpen, setIsMoreModalOpen] = useState(false);
+  const [isAIFoodScannerOpen, setIsAIFoodScannerOpen] = useState(false);
+  const [isResultsOpen, setIsResultsOpen] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState<any>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const navigationItems = [
     { icon: '🏠', label: 'Feed', path: '/feed' },
-    { icon: '➕', label: 'Post', path: '/post' }, // path for Post is just a placeholder
+    { icon: '➕', label: 'Post', path: '/post' },
+    { icon: '🤖', label: 'AI Food Scanner', path: '/ai-food-scanner' },
     { icon: '📍', label: 'Explore', path: '/explore' },
     { icon: '👤', label: 'Profile', path: '/profile' },
   ];
@@ -21,6 +27,8 @@ const DesktopNavigation: React.FC = () => {
   const handleNavClick = (label: string, path: string) => {
     if (label === 'Post') {
       setIsModalOpen(true);
+    } else if (label === 'AI Food Scanner') {
+      setIsAIFoodScannerOpen(true);
     } else if (label === 'Profile') {
       navigate('/profile');
     } else if (label === 'Feed') {
@@ -30,6 +38,11 @@ const DesktopNavigation: React.FC = () => {
     } else {
       navigate(path);
     }
+  };
+
+  const handleAnalysisComplete = (results: any) => {
+    setAnalysisResults(results);
+    setIsResultsOpen(true);
   };
 
   return (
@@ -75,6 +88,22 @@ const DesktopNavigation: React.FC = () => {
       </nav>
       <CreatePostModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <MoreModal isOpen={isMoreModalOpen} onClose={() => setIsMoreModalOpen(false)} />
+
+      {/* AI Food Scanner Modal */}
+      <AIFoodScannerModal
+        isOpen={isAIFoodScannerOpen}
+        onClose={() => setIsAIFoodScannerOpen(false)}
+        onAnalysisComplete={handleAnalysisComplete}
+      />
+
+      {/* AI Food Results Modal */}
+      {analysisResults && (
+        <AIFoodResultsModal
+          isOpen={isResultsOpen}
+          onClose={() => setIsResultsOpen(false)}
+          results={analysisResults}
+        />
+      )}
     </>
   );
 };
