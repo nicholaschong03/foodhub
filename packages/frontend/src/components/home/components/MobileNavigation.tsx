@@ -13,12 +13,12 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({ onPostClick }) => {
   const [isAIFoodScannerOpen, setIsAIFoodScannerOpen] = useState(false);
   const [isResultsOpen, setIsResultsOpen] = useState(false);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
-  const navigationItems = [
-    { icon: '🏠', label: 'Feed', path: '/feed' },
-    { icon: '➕', label: 'Post', path: '/post' },
-    { icon: '📍', label: 'Explore', path: '/explore' },
-    { icon: '👤', label: 'Profile', path: '/profile' },
-  ];
+  // const navigationItems = [
+  //   { icon: '🏠', label: 'Feed', path: '/feed' },
+  //   { icon: '➕', label: 'Post', path: '/post' },
+  //   { icon: '📍', label: 'Explore', path: '/explore' },
+  //   { icon: '👤', label: 'Profile', path: '/profile' },
+  // ];
 
   const handleNavClick = (label: string, path: string) => {
     if (label === 'Post' && onPostClick) {
