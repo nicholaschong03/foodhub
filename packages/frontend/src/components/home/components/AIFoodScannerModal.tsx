@@ -21,10 +21,7 @@ const AIFoodScannerModal: React.FC<AIFoodScannerModalProps> = ({
     const [isMobile] = useState(window.innerWidth <= 768);
     const [useMockData, setUseMockData] = useState(false); // For testing purposes
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [showCamera, setShowCamera] = useState(false);
-    const [stream, setStream] = useState<MediaStream | null>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
 
     const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -35,53 +32,6 @@ const AIFoodScannerModal: React.FC<AIFoodScannerModalProps> = ({
                 setImagePreview(e.target?.result as string);
             };
             reader.readAsDataURL(file);
-        }
-    };
-
-    const startCamera = async () => {
-        try {
-            const mediaStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment' }
-            });
-            setStream(mediaStream);
-            if (videoRef.current) {
-                videoRef.current.srcObject = mediaStream;
-            }
-            setShowCamera(true);
-        } catch (error) {
-            console.error('Error accessing camera:', error);
-            alert('Unable to access camera. Please use upload instead.');
-        }
-    };
-
-    const stopCamera = () => {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            setStream(null);
-        }
-        setShowCamera(false);
-    };
-
-    const captureImage = () => {
-        if (videoRef.current && canvasRef.current) {
-            const video = videoRef.current;
-            const canvas = canvasRef.current;
-            const context = canvas.getContext('2d');
-
-            if (context) {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                context.drawImage(video, 0, 0);
-
-                canvas.toBlob((blob) => {
-                    if (blob) {
-                        const file = new File([blob], 'captured-image.jpg', { type: 'image/jpeg' });
-                        setSelectedImage(file);
-                        setImagePreview(canvas.toDataURL('image/jpeg'));
-                        stopCamera();
-                    }
-                }, 'image/jpeg');
-            }
         }
     };
 
@@ -164,7 +114,7 @@ const AIFoodScannerModal: React.FC<AIFoodScannerModalProps> = ({
                         </div>
                     )}
 
-                    {!imagePreview && !showCamera && (
+                    {!imagePreview && (
                         <div className="space-y-4">
                             <div className="text-center">
                                 <div className="w-24 h-24 mx-auto mb-4 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center">
@@ -175,18 +125,7 @@ const AIFoodScannerModal: React.FC<AIFoodScannerModalProps> = ({
                                     Take a photo or upload an image of your food for AI analysis
                                 </p>
                             </div>
-
                             <div className="space-y-3">
-                                {isMobile && (
-                                    <button
-                                        onClick={startCamera}
-                                        className="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-orange-600 transition-colors flex items-center justify-center"
-                                    >
-                                        <span className="text-xl mr-2">📷</span>
-                                        Take Photo
-                                    </button>
-                                )}
-
                                 <button
                                     onClick={() => fileInputRef.current?.click()}
                                     className="w-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center justify-center"
@@ -194,8 +133,18 @@ const AIFoodScannerModal: React.FC<AIFoodScannerModalProps> = ({
                                     <span className="text-xl mr-2">📁</span>
                                     Upload Image
                                 </button>
+                                {isMobile && (
+                                    <>
+                                        <button
+                                            onClick={() => cameraInputRef.current?.click()}
+                                            className="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-orange-600 transition-colors flex items-center justify-center"
+                                        >
+                                            <span className="text-xl mr-2">📷</span>
+                                            Take Photo
+                                        </button>
+                                    </>
+                                )}
                             </div>
-
                             {/* Development toggle for testing */}
                             {import.meta.env.DEV && (
                                 <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
@@ -210,41 +159,6 @@ const AIFoodScannerModal: React.FC<AIFoodScannerModalProps> = ({
                                     </label>
                                 </div>
                             )}
-                        </div>
-                    )}
-
-                    {/* Camera View */}
-                    {showCamera && (
-                        <div className="space-y-4">
-                            <div className="relative">
-                                <video
-                                    ref={videoRef}
-                                    autoPlay
-                                    playsInline
-                                    className="w-full h-64 object-cover rounded-lg"
-                                />
-                                <div className="absolute inset-0 border-4 border-orange-500 rounded-lg pointer-events-none">
-                                    <div className="absolute top-2 left-2 w-8 h-8 border-l-2 border-t-2 border-orange-500"></div>
-                                    <div className="absolute top-2 right-2 w-8 h-8 border-r-2 border-t-2 border-orange-500"></div>
-                                    <div className="absolute bottom-2 left-2 w-8 h-8 border-l-2 border-b-2 border-orange-500"></div>
-                                    <div className="absolute bottom-2 right-2 w-8 h-8 border-r-2 border-b-2 border-orange-500"></div>
-                                </div>
-                            </div>
-
-                            <div className="flex space-x-3">
-                                <button
-                                    onClick={stopCamera}
-                                    className="flex-1 bg-gray-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-600 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={captureImage}
-                                    className="flex-1 bg-orange-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-orange-600 transition-colors"
-                                >
-                                    Capture
-                                </button>
-                            </div>
                         </div>
                     )}
 
@@ -264,7 +178,6 @@ const AIFoodScannerModal: React.FC<AIFoodScannerModalProps> = ({
                                     ×
                                 </button>
                             </div>
-
                             <div className="flex space-x-3">
                                 <button
                                     onClick={resetImage}
@@ -290,7 +203,7 @@ const AIFoodScannerModal: React.FC<AIFoodScannerModalProps> = ({
                         </div>
                     )}
 
-                    {/* Hidden file input */}
+                    {/* Hidden file inputs */}
                     <input
                         ref={fileInputRef}
                         type="file"
@@ -298,9 +211,16 @@ const AIFoodScannerModal: React.FC<AIFoodScannerModalProps> = ({
                         onChange={handleImageSelect}
                         className="hidden"
                     />
-
-                    {/* Hidden canvas for camera capture */}
-                    <canvas ref={canvasRef} className="hidden" />
+                    {isMobile && (
+                        <input
+                            ref={cameraInputRef}
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handleImageSelect}
+                            className="hidden"
+                        />
+                    )}
                 </div>
             </div>
         </div>,
