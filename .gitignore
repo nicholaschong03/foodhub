@@ -28,6 +28,5 @@ pnpm-debug.log*
 Thumbs.db
 
 # Script Files
-packages/backend/src/scripts/seedUsers.ts
-packages/backend/src/scripts/seedPosts.ts
-packages/backend/src/scripts/updatePosts.ts
+packages/
+
