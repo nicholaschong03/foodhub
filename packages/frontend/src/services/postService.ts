@@ -68,6 +68,243 @@ export async function getPosts(page = 1, limit = 10): Promise<GetPostsResponse> 
     };
 }
 
+export async function getTrendingPosts(page = 1, limit = 10): Promise<GetPostsResponse> {
+    const res = await axiosInstance.get('/posts/trending', {
+        params: { page, limit },
+    });
+    // Map backend response to frontend Post type
+    const posts: Post[] = res.data.posts.map((post: any) => ({
+        id: post._id,
+        title: post.title,
+        imageUrl: post.postPictureUrl,
+        postPictureUrl: post.postPictureUrl,
+        author: {
+            username: post.authorId?.username || 'Unknown',
+            avatar: post.authorId?.profilePicture || '',
+        },
+        likes: post.likesCount || 0,
+        liked: !!post.liked,
+        saved: !!post.saved,
+        menuItemName: post.menuItemName,
+    }));
+    return {
+        posts,
+        total: res.data.total,
+        page: res.data.page,
+        pageSize: res.data.pageSize,
+        totalPages: res.data.totalPages,
+    };
+}
+
+export async function getFollowingPosts(page = 1, limit = 10): Promise<GetPostsResponse> {
+    const res = await axiosInstance.get('/posts/following', {
+        params: { page, limit },
+    });
+    // Map backend response to frontend Post type
+    const posts: Post[] = res.data.posts.map((post: any) => ({
+        id: post._id,
+        title: post.title,
+        imageUrl: post.postPictureUrl,
+        postPictureUrl: post.postPictureUrl,
+        author: {
+            username: post.authorId?.username || 'Unknown',
+            avatar: post.authorId?.profilePicture || '',
+        },
+        likes: post.likesCount || 0,
+        liked: !!post.liked,
+        saved: !!post.saved,
+        menuItemName: post.menuItemName,
+    }));
+    return {
+        posts,
+        total: res.data.total,
+        page: res.data.page,
+        pageSize: res.data.pageSize,
+        totalPages: res.data.totalPages,
+    };
+}
+
+export async function getSavoryPosts(page = 1, limit = 10): Promise<GetPostsResponse> {
+    const res = await axiosInstance.get('/posts/savory', {
+        params: { page, limit },
+    });
+    // Map backend response to frontend Post type
+    const posts: Post[] = res.data.posts.map((post: any) => ({
+        id: post._id,
+        title: post.title,
+        imageUrl: post.postPictureUrl,
+        postPictureUrl: post.postPictureUrl,
+        author: {
+            username: post.authorId?.username || 'Unknown',
+            avatar: post.authorId?.profilePicture || '',
+        },
+        likes: post.likesCount || 0,
+        liked: !!post.liked,
+        saved: !!post.saved,
+        menuItemName: post.menuItemName,
+    }));
+    return {
+        posts,
+        total: res.data.total,
+        page: res.data.page,
+        pageSize: res.data.pageSize,
+        totalPages: res.data.totalPages,
+    };
+}
+
+export async function getSweetPosts(page = 1, limit = 10): Promise<GetPostsResponse> {
+    const res = await axiosInstance.get('/posts/sweet', {
+        params: { page, limit },
+    });
+    // Map backend response to frontend Post type
+    const posts: Post[] = res.data.posts.map((post: any) => ({
+        id: post._id,
+        title: post.title,
+        imageUrl: post.postPictureUrl,
+        postPictureUrl: post.postPictureUrl,
+        author: {
+            username: post.authorId?.username || 'Unknown',
+            avatar: post.authorId?.profilePicture || '',
+        },
+        likes: post.likesCount || 0,
+        liked: !!post.liked,
+        saved: !!post.saved,
+        menuItemName: post.menuItemName,
+    }));
+    return {
+        posts,
+        total: res.data.total,
+        page: res.data.page,
+        pageSize: res.data.pageSize,
+        totalPages: res.data.totalPages,
+    };
+}
+
+export async function getTopRatedPosts(page = 1, limit = 10): Promise<GetPostsResponse> {
+    const res = await axiosInstance.get('/posts/top-rated', {
+        params: { page, limit },
+    });
+    // Map backend response to frontend Post type
+    const posts: Post[] = res.data.posts.map((post: any) => ({
+        id: post._id,
+        title: post.title,
+        imageUrl: post.postPictureUrl,
+        postPictureUrl: post.postPictureUrl,
+        author: {
+            username: post.authorId?.username || 'Unknown',
+            avatar: post.authorId?.profilePicture || '',
+        },
+        likes: post.likesCount || 0,
+        liked: !!post.liked,
+        saved: !!post.saved,
+        menuItemName: post.menuItemName,
+    }));
+    return {
+        posts,
+        total: res.data.total,
+        page: res.data.page,
+        pageSize: res.data.pageSize,
+        totalPages: res.data.totalPages,
+    };
+}
+
+export async function getJapanesePosts(page = 1, limit = 10): Promise<GetPostsResponse> {
+    const res = await axiosInstance.get('/posts/japanese', { params: { page, limit } });
+    const posts: Post[] = res.data.posts.map((post: any) => ({
+        id: post._id,
+        title: post.title,
+        imageUrl: post.postPictureUrl,
+        postPictureUrl: post.postPictureUrl,
+        author: {
+            username: post.authorId?.username || 'Unknown',
+            avatar: post.authorId?.profilePicture || '',
+        },
+        likes: post.likesCount || 0,
+        liked: !!post.liked,
+        saved: !!post.saved,
+        menuItemName: post.menuItemName,
+    }));
+    return {
+        posts,
+        total: res.data.total,
+        page: res.data.page,
+        pageSize: res.data.pageSize,
+        totalPages: res.data.totalPages,
+    };
+}
+export async function getKoreanPosts(page = 1, limit = 10): Promise<GetPostsResponse> {
+    const res = await axiosInstance.get('/posts/korean', { params: { page, limit } });
+    const posts: Post[] = res.data.posts.map((post: any) => ({
+        id: post._id,
+        title: post.title,
+        imageUrl: post.postPictureUrl,
+        postPictureUrl: post.postPictureUrl,
+        author: {
+            username: post.authorId?.username || 'Unknown',
+            avatar: post.authorId?.profilePicture || '',
+        },
+        likes: post.likesCount || 0,
+        liked: !!post.liked,
+        saved: !!post.saved,
+        menuItemName: post.menuItemName,
+    }));
+    return {
+        posts,
+        total: res.data.total,
+        page: res.data.page,
+        pageSize: res.data.pageSize,
+        totalPages: res.data.totalPages,
+    };
+}
+export async function getChinesePosts(page = 1, limit = 10): Promise<GetPostsResponse> {
+    const res = await axiosInstance.get('/posts/chinese', { params: { page, limit } });
+    const posts: Post[] = res.data.posts.map((post: any) => ({
+        id: post._id,
+        title: post.title,
+        imageUrl: post.postPictureUrl,
+        postPictureUrl: post.postPictureUrl,
+        author: {
+            username: post.authorId?.username || 'Unknown',
+            avatar: post.authorId?.profilePicture || '',
+        },
+        likes: post.likesCount || 0,
+        liked: !!post.liked,
+        saved: !!post.saved,
+        menuItemName: post.menuItemName,
+    }));
+    return {
+        posts,
+        total: res.data.total,
+        page: res.data.page,
+        pageSize: res.data.pageSize,
+        totalPages: res.data.totalPages,
+    };
+}
+export async function getWesternPosts(page = 1, limit = 10): Promise<GetPostsResponse> {
+    const res = await axiosInstance.get('/posts/western', { params: { page, limit } });
+    const posts: Post[] = res.data.posts.map((post: any) => ({
+        id: post._id,
+        title: post.title,
+        imageUrl: post.postPictureUrl,
+        postPictureUrl: post.postPictureUrl,
+        author: {
+            username: post.authorId?.username || 'Unknown',
+            avatar: post.authorId?.profilePicture || '',
+        },
+        likes: post.likesCount || 0,
+        liked: !!post.liked,
+        saved: !!post.saved,
+        menuItemName: post.menuItemName,
+    }));
+    return {
+        posts,
+        total: res.data.total,
+        page: res.data.page,
+        pageSize: res.data.pageSize,
+        totalPages: res.data.totalPages,
+    };
+}
+
 export async function getPostDetails(postId: string) {
     const res = await axiosInstance.get(`/posts/${postId}`);
     return res.data.data;
@@ -201,5 +438,13 @@ export async function getComments(postId: string) {
 
 export async function addComment(postId: string, text: string) {
     const res = await axiosInstance.post(`/posts/${postId}/comments`, { text });
+    return res.data;
+}
+
+export async function updatePostAIAnalysis(postId: string, nutritionAnalysis: any, ingredientsAnalysis: string[]) {
+    const res = await axiosInstance.patch(`/posts/${postId}/ai-analysis`, {
+        nutritionAnalysis,
+        ingredientsAnalysis,
+    });
     return res.data;
 }

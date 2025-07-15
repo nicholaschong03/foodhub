@@ -29,10 +29,6 @@ const AuthScreen: React.FC = () => {
     }
   };
 
-  const handleGoogleAuth = () => {
-    // TODO: Implement Google authentication
-    alert('Google sign-in');
-  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen w-full bg-white px-6">
@@ -83,24 +79,11 @@ const AuthScreen: React.FC = () => {
           <div className="flex-grow h-px bg-gray-200" />
         </div>
         <button
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-lg border border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 transition mb-2"
-          onClick={handleGoogleAuth}
+          className="w-full py-3 rounded-lg font-semibold text-lg mt-2 border border-orange-500 text-orange-500 bg-white hover:bg-orange-50 transition disabled:opacity-50"
+          onClick={() => navigate('/auth/register')}
           disabled={isLoading}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <g clipPath="url(#clip0_17_40)">
-              <path d="M23.766 12.276c0-.818-.074-1.604-.213-2.356H12.24v4.451h6.484c-.28 1.51-1.12 2.788-2.384 3.646v3.022h3.858c2.262-2.084 3.568-5.156 3.568-8.763z" fill="#4285F4" />
-              <path d="M12.24 24c3.24 0 5.963-1.07 7.95-2.91l-3.858-3.022c-1.07.72-2.44 1.15-4.092 1.15-3.146 0-5.81-2.127-6.77-4.988H1.47v3.09A11.997 11.997 0 0012.24 24z" fill="#34A853" />
-              <path d="M5.47 14.23A7.19 7.19 0 014.6 12c0-.778.134-1.532.37-2.23V6.68H1.47A11.997 11.997 0 000 12c0 1.885.453 3.667 1.47 5.32l4-3.09z" fill="#FBBC05" />
-              <path d="M12.24 4.77c1.764 0 3.34.607 4.584 1.8l3.43-3.43C18.2 1.07 15.48 0 12.24 0A11.997 11.997 0 001.47 6.68l4 3.09c.96-2.86 3.624-4.99 6.77-4.99z" fill="#EA4335" />
-            </g>
-            <defs>
-              <clipPath id="clip0_17_40">
-                <path fill="#fff" d="M0 0h24v24H0z" />
-              </clipPath>
-            </defs>
-          </svg>
-          Continue with Google
+          Sign up
         </button>
         <div className="text-center mt-4">
           <button

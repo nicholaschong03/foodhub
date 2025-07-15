@@ -9,6 +9,7 @@ export interface FoodAnalysisResult {
     nutrition: NutritionValues;
     nutritionRaw: any; // for tabular display
     imageUrl?: string;
+    isFood: boolean; // indicates if food was detected in the image
 }
 
 export interface ChatRequest {
@@ -22,6 +23,11 @@ export interface ChatRequest {
 export interface ChatResponse {
     answer: string;
     gemini_raw?: any;
+}
+
+export interface FoodDetectionResult {
+    is_food: boolean;
+    confidence: number;
 }
 
 class AIFoodScannerService {
@@ -69,17 +75,42 @@ class AIFoodScannerService {
                 potassium: nutritionRaw.total_potassium,
                 sodium: nutritionRaw.total_sodium,
             };
+
+            // Create a data URL for the image
+            const imageUrl = await this.fileToDataURL(imageFile);
+
+            // Check if food was detected (from food_detection.is_food field)
+            const isFood = apiResult.food_detection?.is_food !== false; // default to true if field is missing
+
             return {
                 dishName,
                 ingredients,
                 healthScore,
                 nutrition,
                 nutritionRaw,
+                imageUrl,
+                isFood,
             };
         } catch (error) {
             console.error('Error analyzing food image:', error);
             throw new Error('Failed to analyze food image. Please try again.');
         }
+    }
+
+    /**
+     * Convert file to data URL
+     * @param file - The file to convert
+     * @returns Promise<string> - The data URL
+     */
+    private fileToDataURL(file: File): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                resolve(e.target?.result as string);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
     }
 
     /**
@@ -106,6 +137,37 @@ class AIFoodScannerService {
         } catch (error) {
             console.error('Error sending chat message:', error);
             throw new Error('Failed to send message. Please try again.');
+        }
+    }
+
+    /**
+     * Detect if an image contains food
+     * @param imageFile - The image file to check
+     * @returns Promise<FoodDetectionResult>
+     */
+    async detectFood(imageFile: File): Promise<FoodDetectionResult> {
+        try {
+            const formData = new FormData();
+            formData.append('file', imageFile);
+
+            // Call AI API directly
+            const response = await fetch(`${this.baseURL}/detect-food`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return {
+                is_food: result.is_food,
+                confidence: result.confidence,
+            };
+        } catch (error) {
+            console.error('Error detecting food:', error);
+            throw new Error('Failed to detect food in image. Please try again.');
         }
     }
 
@@ -159,6 +221,38 @@ class AIFoodScannerService {
                 iron: 0,
                 potassium: 202,
             },
+            imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNhNDFmIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5HcmlsbGVkIENoaWNrZW4gU2FsYWQ8L3RleHQ+PC9zdmc+',
+            isFood: true,
+        };
+    }
+
+    /**
+     * Get mock analysis results for no food detected (testing)
+     */
+    getMockNoFoodResult(): FoodAnalysisResult {
+        return {
+            dishName: '',
+            ingredients: [],
+            healthScore: 0,
+            nutrition: {
+                calories: 0,
+                protein: 0,
+                total_fat: 0,
+                saturated_fat: 0,
+                carbs: 0,
+                fiber: 0,
+                sugar: 0,
+                sodium: 0,
+                vitamin_a: 0,
+                vitamin_c: 0,
+                vitamin_d: 0,
+                calcium: 0,
+                iron: 0,
+                potassium: 0,
+            },
+            nutritionRaw: {},
+            imageUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY2NjY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBGb29kPC90ZXh0Pjwvc3ZnPg==',
+            isFood: false,
         };
     }
 
@@ -183,6 +277,16 @@ class AIFoodScannerService {
         return {
             answer,
             gemini_raw: {},
+        };
+    }
+
+    /**
+     * Get mock food detection result for testing
+     */
+    getMockFoodDetectionResult(): FoodDetectionResult {
+        return {
+            is_food: true,
+            confidence: 0.95,
         };
     }
 }

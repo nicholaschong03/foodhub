@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { createPost, getPostsPaginated, getPostById, getPostsByUser, deletePost, getPostsPaginatedWithDistance, getCommentsForPost, addCommentToPost } from '../services/post.service';
+import { createPost, getPostsPaginated, getPostById, getPostsByUser, deletePost, getPostsPaginatedWithDistance, getCommentsForPost, addCommentToPost, getTrendingPosts, getFollowingPosts, getPostsByFoodCategory, getTopRatedPosts, getPostsByCuisineType, getRecommendedPosts } from '../services/post.service';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import * as postService from '../services/post.service';
 import { UserModel } from '../models/User';
@@ -174,6 +174,134 @@ export class PostController {
             res.status(201).json(comment);
         } catch (err) {
             res.status(500).json({ error: 'Failed to add comment' });
+        }
+    }
+
+    static async getTrendingPosts(req: AuthRequest, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const userId = req.user?.userId;
+            const result = await getTrendingPosts(page, limit, userId);
+            res.json({ success: true, ...result });
+        } catch (error) {
+            res.status(500).json({ success: false, error: 'Error fetching trending posts' });
+        }
+    }
+
+    static async getFollowingPosts(req: AuthRequest, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const userId = req.user?.userId;
+
+            if (!userId) {
+                return res.status(401).json({ success: false, error: 'Unauthorized' });
+            }
+
+            const result = await getFollowingPosts(page, limit, userId);
+            res.json({ success: true, ...result });
+        } catch (error) {
+            res.status(500).json({ success: false, error: 'Error fetching following posts' });
+        }
+    }
+
+    static async getSavoryPosts(req: AuthRequest, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const userId = req.user?.userId;
+            const result = await getPostsByFoodCategory('Savory', page, limit, userId);
+            res.json({ success: true, ...result });
+        } catch (error) {
+            res.status(500).json({ success: false, error: 'Error fetching savory posts' });
+        }
+    }
+
+    static async getSweetPosts(req: AuthRequest, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const userId = req.user?.userId;
+            const result = await getPostsByFoodCategory('Sweet', page, limit, userId);
+            res.json({ success: true, ...result });
+        } catch (error) {
+            res.status(500).json({ success: false, error: 'Error fetching sweet posts' });
+        }
+    }
+
+    static async getTopRatedPosts(req: AuthRequest, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const userId = req.user?.userId;
+            const result = await getTopRatedPosts(page, limit, userId);
+            res.json({ success: true, ...result });
+        } catch (error) {
+            res.status(500).json({ success: false, error: 'Error fetching top rated posts' });
+        }
+    }
+
+    static async getJapanesePosts(req: AuthRequest, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const userId = req.user?.userId;
+            const result = await getPostsByCuisineType('Japanese', page, limit, userId);
+            res.json({ success: true, ...result });
+        } catch (error) {
+            res.status(500).json({ success: false, error: 'Error fetching Japanese posts' });
+        }
+    }
+    static async getKoreanPosts(req: AuthRequest, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const userId = req.user?.userId;
+            const result = await getPostsByCuisineType('Korean', page, limit, userId);
+            res.json({ success: true, ...result });
+        } catch (error) {
+            res.status(500).json({ success: false, error: 'Error fetching Korean posts' });
+        }
+    }
+    static async getChinesePosts(req: AuthRequest, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const userId = req.user?.userId;
+            const result = await getPostsByCuisineType('Chinese', page, limit, userId);
+            res.json({ success: true, ...result });
+        } catch (error) {
+            res.status(500).json({ success: false, error: 'Error fetching Chinese posts' });
+        }
+    }
+    static async getWesternPosts(req: AuthRequest, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const userId = req.user?.userId;
+            const result = await getPostsByCuisineType('Western', page, limit, userId);
+            res.json({ success: true, ...result });
+        } catch (error) {
+            res.status(500).json({ success: false, error: 'Error fetching Western posts' });
+        }
+    }
+
+    static async getRecommendedPosts(req: AuthRequest, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const userId = req.user?.userId;
+
+            if (!userId) {
+                return res.status(401).json({ success: false, error: 'User ID required for recommendations' });
+            }
+
+            const result = await getRecommendedPosts(userId, page, limit);
+            res.json({ success: true, ...result });
+        } catch (error) {
+            console.error('Error fetching recommended posts:', error);
+            res.status(500).json({ success: false, error: 'Error fetching recommended posts', details: error instanceof Error ? error.message : 'Unknown error' });
         }
     }
 }

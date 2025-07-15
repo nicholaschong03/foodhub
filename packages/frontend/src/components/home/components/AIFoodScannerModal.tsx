@@ -19,7 +19,6 @@ const AIFoodScannerModal: React.FC<AIFoodScannerModalProps> = ({
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isMobile] = useState(window.innerWidth <= 768);
-    const [useMockData, setUseMockData] = useState(false); // For testing purposes
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,16 +39,8 @@ const AIFoodScannerModal: React.FC<AIFoodScannerModalProps> = ({
 
         setIsAnalyzing(true);
         try {
-            let results: FoodAnalysisResult;
-
-            if (useMockData) {
-                // Use mock data for testing
-                results = aiFoodScannerService.getMockAnalysisResult();
-            } else {
-                // Use real API
-                results = await aiFoodScannerService.analyzeFoodImage(selectedImage);
-            }
-
+            // Use real API only
+            const results = await aiFoodScannerService.analyzeFoodImage(selectedImage);
             onAnalysisComplete(results);
             onClose();
         } catch (error) {
@@ -145,20 +136,6 @@ const AIFoodScannerModal: React.FC<AIFoodScannerModalProps> = ({
                                     </>
                                 )}
                             </div>
-                            {/* Development toggle for testing */}
-                            {import.meta.env.DEV && (
-                                <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                                    <label className="flex items-center text-sm">
-                                        <input
-                                            type="checkbox"
-                                            checked={useMockData}
-                                            onChange={(e) => setUseMockData(e.target.checked)}
-                                            className="mr-2"
-                                        />
-                                        Use Mock Data (Development)
-                                    </label>
-                                </div>
-                            )}
                         </div>
                     )}
 

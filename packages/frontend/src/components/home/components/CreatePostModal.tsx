@@ -4,6 +4,7 @@ import Cropper from 'react-easy-crop';
 import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import axiosInstance from '../../../services/axios.config';
+import AIFoodScannerService from '../../../services/aiFoodScannerService';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -52,6 +53,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
   const [aspect, setAspect] = useState<number | null>(null);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Food detection state
+  const [isDetectingFood, setIsDetectingFood] = useState(false);
 
   // Meta fields
   const [title, setTitle] = useState('');
@@ -129,15 +133,38 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
     }
   };
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     if (!ACCEPTED_FORMATS.includes(file.type)) {
       setError('Only PNG, JPG, JPEG, and WEBP images are allowed.');
       setPreviewUrl(null);
       return;
     }
+
     setError(null);
     setPreviewUrl(URL.createObjectURL(file));
-    setStep('crop');
+    setIsDetectingFood(true);
+
+    try {
+      // Perform food detection immediately (direct AI API call)
+      const result = await AIFoodScannerService.detectFood(file);
+
+      if (!result.is_food) {
+        setError('No food detected in this image. Please upload an image containing food.');
+        setPreviewUrl(null);
+        setStep('upload');
+        return;
+      }
+
+      // If food is detected, proceed to crop step
+      setStep('crop');
+    } catch (error) {
+      console.error('Food detection error:', error);
+      setError('Failed to detect food in image. Please try again.');
+      setPreviewUrl(null);
+      setStep('upload');
+    } finally {
+      setIsDetectingFood(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,6 +182,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
     setCroppedImage(null);
     setError(null);
     setStep('upload');
+    setIsDetectingFood(false);
     onClose();
   };
 
@@ -305,52 +333,64 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
   if (step === 'upload') {
     content = (
       <div
-        className="flex flex-col items-center justify-center border-2 border-dashed border-orange-400 rounded-lg bg-gray-50 py-12 cursor-pointer transition hover:bg-orange-50"
-        onClick={handleClick}
-        onDrop={handleDrop}
+        className={`flex flex-col items-center justify-center border-2 border-dashed border-orange-400 rounded-lg bg-gray-50 py-12 transition ${isDetectingFood ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-orange-50'}`}
+        onClick={isDetectingFood ? undefined : handleClick}
+        onDrop={isDetectingFood ? undefined : handleDrop}
         onDragOver={e => e.preventDefault()}
       >
-        <svg className="w-16 h-16 text-orange-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 48 48">
-          <path d="M24 6v24m0 0l-8-8m8 8l8-8" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-          <rect x="6" y="34" width="36" height="8" rx="2" fill="#fff" stroke="#F59E42" strokeWidth={2} />
-        </svg>
-        <p className="text-gray-700 font-medium">Drag & drop an image here or click to upload</p>
-        <p className="text-gray-400 text-sm mt-1">PNG, JPG, JPEG, WEBP (max 32MB)</p>
-        <div className="flex gap-3 mt-4">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/png, image/jpg, image/jpeg, image/webp"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-          <button
-            type="button"
-            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
-            onClick={e => { e.stopPropagation(); handleClick(); }}
-          >
-            Upload Photo
-          </button>
-          {isMobile && (
-            <>
+        {isDetectingFood ? (
+          <>
+            <div className="w-16 h-16 mb-4 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+            </div>
+            <p className="text-gray-700 font-medium">Detecting food in image...</p>
+            <p className="text-gray-400 text-sm mt-1">Please wait while we analyze your image</p>
+          </>
+        ) : (
+          <>
+            <svg className="w-16 h-16 text-orange-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+              <path d="M24 6v24m0 0l-8-8m8 8l8-8" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              <rect x="6" y="34" width="36" height="8" rx="2" fill="#fff" stroke="#F59E42" strokeWidth={2} />
+            </svg>
+            <p className="text-gray-700 font-medium">Drag & drop an image here or click to upload</p>
+            <p className="text-gray-400 text-sm mt-1">PNG, JPG, JPEG, WEBP (max 32MB)</p>
+            <div className="flex gap-3 mt-4">
               <input
-                ref={cameraInputRef}
+                ref={fileInputRef}
                 type="file"
-                accept="image/*"
-                capture="environment"
+                accept="image/png, image/jpg, image/jpeg, image/webp"
                 className="hidden"
                 onChange={handleFileChange}
               />
               <button
                 type="button"
                 className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
-                onClick={e => { e.stopPropagation(); cameraInputRef.current?.click(); }}
+                onClick={e => { e.stopPropagation(); handleClick(); }}
               >
-                Take Photo
+                Upload Photo
               </button>
-            </>
-          )}
-        </div>
+              {isMobile && (
+                <>
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                    onClick={e => { e.stopPropagation(); cameraInputRef.current?.click(); }}
+                  >
+                    Take Photo
+                  </button>
+                </>
+              )}
+            </div>
+          </>
+        )}
       </div>
     );
   } else if (step === 'crop' && previewUrl) {

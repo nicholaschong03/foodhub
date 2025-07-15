@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { getPostDetails, likePost, unlikePost, hasLikedPost, savePost, unsavePost, hasSavedPost, getComments, addComment } from '../../../services/postService';
-import { FaUtensils, FaRegCommentDots, FaRegHeart, FaHeart, FaRegBookmark, FaBookmark, FaMapMarkerAlt, FaRegFileAlt, FaPaperPlane, FaTimes } from 'react-icons/fa';
+import { FaUtensils, FaRegCommentDots, FaRegHeart, FaHeart, FaRegBookmark, FaBookmark, FaMapMarkerAlt, FaRegFileAlt, FaPaperPlane, FaTimes, FaRobot } from 'react-icons/fa';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { followUser, unfollowUser, isFollowing as checkIsFollowing } from '../../../services/userService';
+import aiFoodScannerService, { FoodAnalysisResult } from '../../../services/aiFoodScannerService';
+import { updatePostAIAnalysis } from '../../../services/postService';
+import { createPortal } from 'react-dom';
+import AIFoodResultsModal from './AIFoodResultsModal';
+import dayjs from 'dayjs';
 
 interface Post {
   id: string;
@@ -28,6 +33,9 @@ interface Post {
   restaurantLocation?: {
     coordinates: [number, number];
   };
+  nutritionAnalysis?: any;
+  ingredientsAnalysis?: string[];
+  createdAt: string;
 }
 
 interface Comment {
@@ -66,6 +74,9 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [commentError, setCommentError] = useState<string | null>(null);
   const [showCommentModal, setShowCommentModal] = useState(false);
+  const [showAIResult, setShowAIResult] = useState(false);
+  const [aiResult, setAIResult] = useState<null | { nutrition: any, ingredients: string[], imageUrl?: string, isFood?: boolean }>(null);
+  const [isAnalyzingAI, setIsAnalyzingAI] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -199,6 +210,54 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
     }
   };
 
+  const handleAIAnalyze = async () => {
+    console.log('AI button clicked');
+    if (!post) {
+      console.log('No post loaded');
+      return;
+    }
+    if (post.nutritionAnalysis && post.ingredientsAnalysis) {
+      console.log('Using cached analysis');
+      setAIResult({
+        nutrition: post.nutritionAnalysis,
+        ingredients: post.ingredientsAnalysis,
+        imageUrl: post.postPictureUrl,
+        isFood: true,
+      });
+      setShowAIResult(true);
+      console.log('Show AI Result:', true, post.nutritionAnalysis, post.ingredientsAnalysis);
+      return;
+    }
+    setIsAnalyzingAI(true);
+    try {
+      // Use the post image for analysis
+      const imageUrl = post.postPictureUrl;
+      // Fetch the image as a blob
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'food.jpg', { type: blob.type });
+      console.log('Sending image to AI service...');
+      const result: FoodAnalysisResult = await aiFoodScannerService.analyzeFoodImage(file);
+      console.log('AI analysis result:', result);
+      // Save to backend
+      await updatePostAIAnalysis(postId, result.nutrition, result.ingredients);
+      setAIResult({
+        nutrition: result.nutrition,
+        ingredients: result.ingredients,
+        imageUrl: result.imageUrl || imageUrl,
+        isFood: result.isFood,
+      });
+      setShowAIResult(true);
+      console.log('Show AI Result:', true, result.nutrition, result.ingredients);
+      // Optionally update local post state
+      setPost(prev => prev ? { ...prev, nutritionAnalysis: result.nutrition, ingredientsAnalysis: result.ingredients } : prev);
+    } catch (err) {
+      console.error('AI analysis error:', err);
+    } finally {
+      setIsAnalyzingAI(false);
+    }
+  };
+
   if (loading || !post) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
@@ -281,6 +340,46 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
     </AnimatePresence>
   );
 
+  // AI Food Analysis Modal (reuse AIFoodResultsModal)
+  const AIFoodSimpleModal: React.ReactNode = showAIResult && aiResult ? (
+    <AIFoodResultsModal
+      isOpen={showAIResult}
+      onClose={() => setShowAIResult(false)}
+      results={{
+        dishName: post?.title || '',
+        ingredients: aiResult.ingredients,
+        healthScore: 0,
+        nutrition: aiResult.nutrition,
+        nutritionRaw: {},
+        imageUrl: aiResult.imageUrl,
+        isFood: aiResult.isFood !== false,
+      }}
+      backButton={true}
+      hideHealthScore={true}
+    />
+  ) : null;
+
+  // AI Food Analysis Loading Overlay
+  const loadingOverlay = isAnalyzingAI && createPortal(
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+      <div className="flex flex-col items-center justify-center bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-10">
+        <div className="relative w-32 h-32 mb-6">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-6xl">🤖</span>
+          </div>
+          <div className="absolute left-0 top-0 w-full h-full overflow-hidden rounded-xl pointer-events-none">
+            <div className="scan-laser" />
+            <div className="scan-shimmer" />
+          </div>
+        </div>
+        <div className="mb-2 text-orange-500 text-2xl animate-pulse">🍽️</div>
+        <div className="font-semibold text-lg mb-1">Analyzing food...</div>
+        <div className="text-gray-500 dark:text-gray-300 text-sm">This may take a few seconds</div>
+      </div>
+    </div>,
+    document.body
+  );
+
   // Mobile layout
   const mobileContent = (
     <AnimatePresence>
@@ -302,6 +401,14 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
             title={showMenuPanel ? 'Show Post Details' : 'Show Menu/Restaurant Info'}
           >
             {showMenuPanel ? <FaRegFileAlt className="text-orange-500 w-5 h-5" /> : <FaUtensils className="text-orange-500 w-5 h-5" />}
+          </button>
+          {/* AI Robot Button */}
+          <button
+            className="absolute top-4 left-4 bg-white bg-opacity-80 rounded-full p-2 shadow hover:bg-orange-100 transition text-base"
+            onClick={handleAIAnalyze}
+            title="Analyze Food with AI"
+          >
+            <FaRobot className="text-orange-500 w-5 h-5" />
           </button>
         </div>
         {/* Details below image */}
@@ -460,9 +567,17 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
             >
               {showMenuPanel ? <FaRegFileAlt className="text-orange-500 w-5 h-5" /> : <FaUtensils className="text-orange-500 w-5 h-5" />}
             </button>
+            {/* AI Robot Button */}
+            <button
+              className="absolute top-6 left-6 bg-white bg-opacity-80 rounded-full p-2 shadow hover:bg-orange-100 transition text-lg"
+              onClick={handleAIAnalyze}
+              title="Analyze Food with AI"
+            >
+              <FaRobot className="text-orange-500 w-5 h-5" />
+            </button>
           </div>
           {/* Right: Details */}
-          <div className="flex-1 flex flex-col p-10 relative min-w-[380px] max-w-[600px] h-full overflow-y-auto text-lg">
+          <div className="flex-1 flex flex-col p-10 relative min-w-[380px] max-w-[600px] h-full">
             {/* User Info & Follow */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4 cursor-pointer group/profile hover:text-orange-500" onClick={() => navigate(`/profile/${post.authorId?.username}`)}>
@@ -492,62 +607,69 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
             {/* Panel Content */}
             {!showMenuPanel ? (
               <>
-                <h2 className="text-2xl font-bold mb-4">{post.title}</h2>
-                <p className="text-gray-700 mb-4 text-lg">{post.description}</p>
-                <div className="flex flex-wrap gap-3 mb-5">
-                  {post.dietaryTags?.map((tag: string) => (
-                    <span key={tag} className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-base font-medium">{tag}</span>
-                  ))}
+                <div className="flex-1 overflow-y-auto">
+                  <h2 className="text-2xl font-bold mb-4">{post.title}</h2>
+                  <p className="text-gray-700 mb-4 text-lg">{post.description}</p>
+                  <div className="flex flex-wrap gap-3 mb-5">
+                    {post.dietaryTags?.map((tag: string) => (
+                      <span key={tag} className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-base font-medium">{tag}</span>
+                    ))}
+                  </div>
+                  {/* Like/Save/Comment counts and Date */}
+                  <div className="flex items-center gap-6 mb-6 text-xl justify-between">
+                    <div className="flex items-center gap-6">
+                      <motion.button
+                        className="flex items-center gap-2 text-gray-500 hover:text-red-500"
+                        onClick={handleLike}
+                        whileTap={{ scale: 0.9 }}
+                        animate={{
+                          color: isLiked ? '#ef4444' : '#6b7280',
+                          scale: isLiked ? [1, 1.2, 1] : 1
+                        }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {isLiked ? <FaHeart /> : <FaRegHeart />}
+                        <span>{post.likesCount}</span>
+                      </motion.button>
+                      <motion.button
+                        className="flex items-center gap-2 focus:outline-none"
+                        onClick={handleSave}
+                        whileTap={{ scale: 0.9 }}
+                        animate={{
+                          color: isSaved ? '#2563eb' : '#9ca3af',
+                          scale: isSaved ? [1, 1.2, 1] : 1
+                        }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {isSaved ? <FaBookmark /> : <FaRegBookmark />}
+                      </motion.button>
+                      <span className="flex items-center gap-2 text-gray-500">
+                        <FaRegCommentDots /> {post.commentsCount}
+                      </span>
+                    </div>
+                    <span className="text-gray-400 text-base whitespace-nowrap">
+                      {post.createdAt ? dayjs(post.createdAt).format('D MMM YYYY, h:mm A') : ''}
+                    </span>
+                  </div>
+                  {/* Comments */}
+                  <div className="mb-4">
+                    <div className="font-semibold mb-3 text-lg">Comments</div>
+                    {commentsLoading ? (
+                      <div className="text-gray-500">Loading comments…</div>
+                    ) : comments.length === 0 ? (
+                      <div className="text-gray-400">No comments yet.</div>
+                    ) : (
+                      comments.map((c) => (
+                        <div key={c.id} className="flex items-center gap-3 mb-3">
+                          <img src={c.userId?.profilePicture || '/default-avatar.png'} alt={c.userId?.username || 'User'} className="w-8 h-8 rounded-full" />
+                          <span className="text-base font-medium">{c.userId?.username || 'User'}</span>
+                          <span className="text-base text-gray-600">{c.text}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-                {/* Like/Save/Comment counts */}
-                <div className="flex items-center gap-6 mb-6 text-xl">
-                  <motion.button
-                    className="flex items-center gap-2 text-gray-500 hover:text-red-500"
-                    onClick={handleLike}
-                    whileTap={{ scale: 0.9 }}
-                    animate={{
-                      color: isLiked ? '#ef4444' : '#6b7280',
-                      scale: isLiked ? [1, 1.2, 1] : 1
-                    }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {isLiked ? <FaHeart /> : <FaRegHeart />}
-                    <span>{post.likesCount}</span>
-                  </motion.button>
-                  <motion.button
-                    className="flex items-center gap-2 focus:outline-none"
-                    onClick={handleSave}
-                    whileTap={{ scale: 0.9 }}
-                    animate={{
-                      color: isSaved ? '#2563eb' : '#9ca3af',
-                      scale: isSaved ? [1, 1.2, 1] : 1
-                    }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {isSaved ? <FaBookmark /> : <FaRegBookmark />}
-                  </motion.button>
-                  <span className="flex items-center gap-2 text-gray-500">
-                    <FaRegCommentDots /> {post.commentsCount}
-                  </span>
-                </div>
-                {/* Comments */}
-                <div className="flex-1 overflow-y-auto mb-4">
-                  <div className="font-semibold mb-3 text-lg">Comments</div>
-                  {commentsLoading ? (
-                    <div className="text-gray-500">Loading comments…</div>
-                  ) : comments.length === 0 ? (
-                    <div className="text-gray-400">No comments yet.</div>
-                  ) : (
-                    comments.map((c) => (
-                      <div key={c.id} className="flex items-center gap-3 mb-3">
-                        <img src={c.userId?.profilePicture || '/default-avatar.png'} alt={c.userId?.username || 'User'} className="w-8 h-8 rounded-full" />
-                        <span className="text-base font-medium">{c.userId?.username || 'User'}</span>
-                        <span className="text-base text-gray-600">{c.text}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
-                {/* Comment input */}
+                {/* Comment input always at the bottom */}
                 <form className="flex items-center gap-3 mt-2" onSubmit={handleCommentSubmit}>
                   <input
                     className="flex-1 border rounded px-3 py-2 text-base"
@@ -566,7 +688,6 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
                     <FaPaperPlane className="w-4 h-4" />
                   </button>
                 </form>
-                {commentError && <div className="text-red-500 text-xs mt-1">{commentError}</div>}
               </>
             ) : (
               <>
@@ -625,6 +746,10 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ postId, onClose, cu
 
   return (
     <>
+      {/* AI Food Analysis Modal (result) */}
+      {AIFoodSimpleModal}
+      {/* AI Food Analysis Loading Overlay */}
+      {loadingOverlay}
       {/* Mobile: full screen overlay, image on top, details below */}
       <div className="block md:hidden">{mobileContent}</div>
       {/* Desktop: modal */}

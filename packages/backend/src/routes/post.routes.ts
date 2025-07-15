@@ -5,6 +5,7 @@ import { savePost, unsavePost, checkSaveStatus, getSavedPosts, getSavedPostsByUs
 import { authenticateToken, AuthRequest } from '../middlewares/auth.middleware';
 import { uploadPostImage } from '../utils/multerCloudinary';
 import * as postLikeService from '../services/postLike.service';
+import { updatePostAIAnalysis } from '../services/post.service';
 
 const router = Router();
 
@@ -12,7 +13,22 @@ const router = Router();
 router.post('/create-post', authenticateToken, uploadPostImage.single('image'), PostController.create);
 
 // List posts (paginated, public)
-router.get('/recommended', authenticateToken, PostController.list);
+router.get('/recommended', authenticateToken, PostController.getRecommendedPosts);
+
+// Get trending posts (sorted by likes count)
+router.get('/trending', authenticateToken, PostController.getTrendingPosts);
+
+// Get posts from users that the current user follows
+router.get('/following', authenticateToken, PostController.getFollowingPosts);
+
+// Get savory posts
+router.get('/savory', authenticateToken, PostController.getSavoryPosts);
+
+// Get sweet posts
+router.get('/sweet', authenticateToken, PostController.getSweetPosts);
+
+// Get top rated posts (foodRating 4-5)
+router.get('/top-rated', authenticateToken, PostController.getTopRatedPosts);
 
 // Get posts by the authenticated user (paginated)
 router.get('/my-posts', authenticateToken, PostController.getPostsByUser);
@@ -25,6 +41,12 @@ router.get('/saved', authenticateToken, getSavedPosts);
 
 // List posts with distance sorting
 router.get('/nearby', authenticateToken, PostController.listWithDistance);
+
+router.get('/japanese', authenticateToken, PostController.getJapanesePosts);
+router.get('/korean', authenticateToken, PostController.getKoreanPosts);
+router.get('/chinese', authenticateToken, PostController.getChinesePosts);
+router.get('/western', authenticateToken, PostController.getWesternPosts);
+
 
 // Get single post details (public)
 router.get('/:id', authenticateToken, PostController.getOne);
@@ -62,5 +84,9 @@ router.get('/saved/:username', authenticateToken, getSavedPostsByUsername);
 // Add comment routes
 router.get('/:postId/comments', authenticateToken, PostController.getCommentsForPostController);
 router.post('/:postId/comments', authenticateToken, PostController.addCommentToPostController);
+
+// Add AI analysis route
+router.patch('/:postId/ai-analysis', authenticateToken, updatePostAIAnalysis);
+
 
 export default router;

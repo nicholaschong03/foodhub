@@ -99,11 +99,25 @@ export class UserController {
             const userId = req.user?.userId;
             if (!userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
+            // If a new profile image was uploaded, overwrite req.body.profilePicture with the Cloudinary URL (string)
+            if (req.file && req.file.path) {
+                req.body.profilePicture = req.file.path;
+            }
+
+            // 2. Debug log
+            console.log(
+                '[DEBUG] req.body.profilePicture type:', typeof req.body.profilePicture,
+                '| value:', req.body.profilePicture
+            );
+            console.log('[DEBUG] req.file:', req.file);
+
             // Convert string fields to correct types if using FormData
             if (typeof req.body.height === 'string') req.body.height = Number(req.body.height);
             if (typeof req.body.weight === 'string') req.body.weight = Number(req.body.weight);
             if (typeof req.body.adventurousness === 'string') req.body.adventurousness = Number(req.body.adventurousness);
             if (typeof req.body.age === 'string') req.body.age = Number(req.body.age);
+
+            // Parse arrays sent as JSON strings
             ['restrictions', 'cusines', 'allergies'].forEach(field => {
                 if (typeof req.body[field] === 'string') {
                     try {
@@ -114,7 +128,7 @@ export class UserController {
                 }
             });
 
-            // Validate request body (allow partial updates, so use .partial())
+            // ** NOW validate with Zod **
             const validatedData = UserSchema.partial().parse(req.body);
 
             // If password is present, hash it
@@ -122,11 +136,6 @@ export class UserController {
                 const bcrypt = require('bcryptjs');
                 const salt = await bcrypt.genSalt(10);
                 validatedData.password = await bcrypt.hash(validatedData.password, salt);
-            }
-
-            // If a new profile image was uploaded, set the profilePicture field
-            if (req.file && req.file.path) {
-                validatedData.profilePicture = req.file.path;
             }
 
             // Update user

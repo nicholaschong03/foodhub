@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import PostCard from './PostCard';
-import { getPosts, getPostsWithDistance, Post as PostType, likePost, unlikePost } from '../../../services/postService';
+import { getPosts, getPostsWithDistance, getTrendingPosts, getFollowingPosts, getSavoryPosts, getSweetPosts, getTopRatedPosts, getJapanesePosts, getKoreanPosts, getChinesePosts, getWesternPosts, Post as PostType, likePost, unlikePost } from '../../../services/postService';
 import PostDetailsModal from './PostDetailsModal';
 import { MapPinIcon } from '@heroicons/react/24/outline';
 import Header from '../../common/Header';
@@ -11,7 +11,7 @@ const Feed: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState('Recommended');
+  const [selectedCategory, setSelectedCategory] = useState('Trending');
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -68,6 +68,24 @@ const Feed: React.FC = () => {
           return;
         }
         res = await getPostsWithDistance(pageToFetch, 20, userLocation);
+      } else if (selectedCategory === 'Trending') {
+        res = await getTrendingPosts(pageToFetch, 20);
+      } else if (selectedCategory === 'Following') {
+        res = await getFollowingPosts(pageToFetch, 20);
+      } else if (selectedCategory === 'Savory') {
+        res = await getSavoryPosts(pageToFetch, 20);
+      } else if (selectedCategory === 'Dessert') {
+        res = await getSweetPosts(pageToFetch, 20);
+      } else if (selectedCategory === 'Top Rated') {
+        res = await getTopRatedPosts(pageToFetch, 20);
+      } else if (selectedCategory === 'Japanese') {
+        res = await getJapanesePosts(pageToFetch, 20);
+      } else if (selectedCategory === 'Korean') {
+        res = await getKoreanPosts(pageToFetch, 20);
+      } else if (selectedCategory === 'Chinese') {
+        res = await getChinesePosts(pageToFetch, 20);
+      } else if (selectedCategory === 'Western') {
+        res = await getWesternPosts(pageToFetch, 20);
       } else {
         res = await getPosts(pageToFetch, 20);
       }
@@ -130,13 +148,34 @@ const Feed: React.FC = () => {
     fetchPosts(page);
   }, [page, fetchPosts]);
 
+  const loadingMessages = [
+    'Analyzing your preferences…',
+    'Detecting dietary restrictions…',
+    'Finding your best food matches…',
+    'Personalizing your feed…',
+    'Cooking up recommendations…',
+    'Almost ready!'
+  ];
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+
+  // Cycle loading messages when loading recommended
+  useEffect(() => {
+    if (selectedCategory === 'Recommended' && loading) {
+      setLoadingMessageIndex(0);
+      const interval = setInterval(() => {
+        setLoadingMessageIndex((prev) => (prev + 1) % loadingMessages.length);
+      }, 1200);
+      return () => clearInterval(interval);
+    }
+  }, [selectedCategory, loading]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       {/* Header with search bar */}
       <Header onPostSelect={setSelectedPostId} />
       {/* Category Tabs */}
       <div className="flex space-x-6 mb-6 overflow-x-auto scrollbar-hide">
-        {['Recommended', 'Trending', 'Following', 'Nearby', 'Top Rated', 'Cuisines', 'Japanese', 'Healthy & Light', 'Dessert'].map((category) => (
+        {['Trending', 'Recommended', 'Following', 'Nearby', 'Top Rated', 'Japanese', 'Korean', 'Western', 'Chinese', 'Savory', 'Dessert'].map((category) => (
           <button
             key={category}
             onClick={() => handleCategoryChange(category)}
@@ -201,8 +240,26 @@ const Feed: React.FC = () => {
         </div>
       )}
 
+      {/* No posts for Following */}
+      {!loading && selectedCategory === 'Following' && posts.length === 0 && (
+        <div className="text-center py-10 text-gray-400 text-lg">
+          You are not following anyone yet, or no posts to show.
+        </div>
+      )}
+
       {/* Loading States */}
-      {loading && (
+      {loading && selectedCategory === 'Recommended' && (
+        <div className="flex flex-col items-center justify-center py-10 animate-fade-in">
+          <svg className="animate-spin h-8 w-8 text-orange-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+          </svg>
+          <div className="text-lg text-orange-500 font-semibold min-h-[2.5rem] transition-all duration-500">
+            {loadingMessages[loadingMessageIndex]}
+          </div>
+        </div>
+      )}
+      {loading && selectedCategory !== 'Recommended' && (
         <div className={`text-center py-6 text-gray-400 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
           Loading more posts…
         </div>

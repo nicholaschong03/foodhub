@@ -8,16 +8,32 @@ export async function getUserProfile(userId: string) {
 export async function updateUserProfile(userId: string, data: any) {
     let payload = data;
 
+    // If sending a File, use FormData
     if (data.profilePicture && data.profilePicture instanceof File) {
         payload = new FormData();
-        Object.keys(data).forEach(key => {
-            payload.append(key, data[key]);
-        });
+        for (let key in data) {
+            if (key === 'profilePicture') {
+                payload.append(key, data[key], data[key].name); // Always include filename!
+            } else if (Array.isArray(data[key])) {
+                payload.append(key, JSON.stringify(data[key]));
+            } else if (typeof data[key] === 'number' || typeof data[key] === 'string') {
+                payload.append(key, data[key].toString());
+            } else if (data[key] !== undefined && data[key] !== null) {
+                payload.append(key, JSON.stringify(data[key]));
+            }
+        }
     }
 
-    const res = await axiosInstance.put(`/users/${userId}`, payload);
+
+    // Never set Content-Type manually for FormData!
+    const res = await axiosInstance.put(`/users/${userId}`, payload, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
     return res.data.data;
 }
+
 
 export async function getUserProfileByUsername(username: string) {
     const res = await axiosInstance.get(`/users/username/${username}`);

@@ -8,7 +8,12 @@
     "start": "node dist/index.js",
     "seed": "ts-node src/scripts/seedUsers.ts",
     "seed:posts": "ts-node src/scripts/seedPosts.ts",
-    "update:posts": "ts-node src/scripts/updatePosts.ts"
+    "update:posts": "ts-node src/scripts/updatePosts.ts",
+    "replace:kosher": "ts-node src/scripts/replaceKosherRestriction.ts",
+    "generate:postlikes": "ts-node src/scripts/generatePostLikes.ts",
+    "generate:postsaves": "ts-node src/scripts/generatePostSaves.ts",
+    "generate:follows": "ts-node src/scripts/generateFollows.ts"
+
   },
   "dependencies": {
     "@types/bcryptjs": "^3.0.0",

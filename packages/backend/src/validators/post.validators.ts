@@ -27,6 +27,25 @@ const NutritionEstimateSchema = z.object({
     fat: z.number().min(0),
 }).partial();
 
+// Nutrition analysis schema (optional)
+const NutritionAnalysisSchema = z.object({
+    calories: z.number().optional(),
+    protein: z.number().optional(),
+    fat: z.number().optional(),
+    saturated_fat: z.number().optional(),
+    carbs: z.number().optional(),
+    fiber: z.number().optional(),
+    sugar: z.number().optional(),
+    cholesterol: z.number().optional(),
+    vitamin_a: z.number().optional(),
+    vitamin_c: z.number().optional(),
+    vitamin_d: z.number().optional(),
+    calcium: z.number().optional(),
+    iron: z.number().optional(),
+    potassium: z.number().optional(),
+    sodium: z.number().optional(),
+}).partial();
+
 // Location GeoPoint schema
 const GeoPointSchema = z.object({
     type: z.literal('Point'),
@@ -57,6 +76,8 @@ export const PostSchema = z.object({
 
     textSentimentScore: SentimentSchema.optional(),
     nutritionalEstimate: NutritionEstimateSchema.optional(),
+    nutritionAnalysis: NutritionAnalysisSchema.optional(),
+    ingredientsAnalysis: z.array(z.string()).optional(),
 
     likesCount: z.number().int().nonnegative().optional().default(0),
     commentsCount: z.number().int().nonnegative().optional().default(0),

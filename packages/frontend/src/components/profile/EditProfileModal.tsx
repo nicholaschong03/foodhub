@@ -75,13 +75,26 @@ export default function EditProfileModal({ user, onClose }: { user: any, onClose
     setError('');
     try {
       let payload = { ...form };
+
       // If profilePicture is a base64 string, convert to File
-      if (form.profilePicture && typeof form.profilePicture === 'string' && form.profilePicture.startsWith('data:image')) {
-        const file = dataURLtoFile(form.profilePicture, 'profile-picture.png');
-        payload.profilePicture = file;
+      if (
+        payload.profilePicture &&
+        typeof payload.profilePicture === 'string' &&
+        payload.profilePicture.startsWith('data:image')
+      ) {
+        payload.profilePicture = dataURLtoFile(payload.profilePicture, 'profile-picture.png');
       }
+
       if (payload.height !== '') payload.height = Number(payload.height);
       if (payload.weight !== '') payload.weight = Number(payload.weight);
+
+      // Debug: log what you're sending
+      console.log('payload.profilePicture:', payload.profilePicture);
+
+      console.log('typeof payload.profilePicture:', typeof payload.profilePicture);
+      console.log('payload.profilePicture instanceof File:', payload.profilePicture instanceof File);
+      console.log('payload:', payload);
+
       await updateUserProfile(user._id, payload);
       onClose();
     } catch (err: any) {
@@ -90,7 +103,6 @@ export default function EditProfileModal({ user, onClose }: { user: any, onClose
       setLoading(false);
     }
   }
-
   // Helper to convert base64 to File
   function dataURLtoFile(dataurl: string, filename: string): File {
     const arr = dataurl.split(',');

@@ -12,6 +12,7 @@ import PostDetailsModal from '../home/components/PostDetailsModal';
 // import { FaTrash } from 'react-icons/fa';
 import Header from '../common/Header';
 import { useNavigate } from 'react-router-dom';
+import React, { useRef } from 'react';
 
 const logoOrange = 'https://res.cloudinary.com/dsanama6k/image/upload/v1750516307/logo_orange_rf4tri.png';
 
@@ -97,6 +98,9 @@ export default function UserProfileScreen() {
   const [listUsers, setListUsers] = useState<any[]>([]);
   const [listLoading, setListLoading] = useState(false);
   const navigate = useNavigate();
+  const [listPage, setListPage] = useState(1);
+  const [listHasMore, setListHasMore] = useState(true);
+  const listContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -135,21 +139,38 @@ export default function UserProfileScreen() {
     }
   }, [tab, userId]);
 
-  // Fetch list when modal is opened
+  // Fetch list when modal is opened or page changes
   useEffect(() => {
     if (!showListModal || !userId) return;
     setListLoading(true);
     const fetchList = showListModal === 'followers' ? getFollowers : getFollowing;
-    fetchList(userId).then(res => {
-      // Explicitly map to the correct user object
-      if (showListModal === 'followers') {
-        setListUsers((res.followers || []).map((item: any) => item.follower));
-      } else {
-        setListUsers((res.following || []).map((item: any) => item.following));
-      }
+    fetchList(userId, listPage, 10).then(res => {
+      const newUsers = (showListModal === 'followers'
+        ? (res.followers || []).map((item: any) => item.follower)
+        : (res.following || []).map((item: any) => item.following)
+      );
+      setListUsers(prev => listPage === 1 ? newUsers : [...prev, ...newUsers]);
+      setListHasMore((res.totalPages && listPage < res.totalPages) || (newUsers.length === 10));
       setListLoading(false);
     });
-  }, [showListModal, userId]);
+  }, [showListModal, userId, listPage]);
+
+  // Reset list state when modal opens/closes
+  useEffect(() => {
+    if (showListModal) {
+      setListPage(1);
+      setListHasMore(true);
+      setListUsers([]);
+    }
+  }, [showListModal]);
+
+  // Infinite scroll handler
+  const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop - clientHeight < 32 && listHasMore && !listLoading) {
+      setListPage(p => p + 1);
+    }
+  };
 
   const loadPosts = async () => {
     try {
@@ -460,12 +481,16 @@ export default function UserProfileScreen() {
           <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full text-center relative">
             <button onClick={() => setShowListModal(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
             <div className="text-xl font-semibold mb-4">{showListModal === 'followers' ? 'Followers' : 'Following'}</div>
-            {listLoading ? (
+            {listLoading && listPage === 1 ? (
               <div className="text-gray-400 py-8">Loading…</div>
             ) : listUsers.length === 0 ? (
               <div className="text-gray-400 py-8">No users found.</div>
             ) : (
-              <div className="divide-y">
+              <div
+                className="divide-y max-h-80 overflow-y-auto"
+                ref={listContainerRef}
+                onScroll={handleListScroll}
+              >
                 {listUsers.map((u: any) => (
                   <div
                     key={u._id}
@@ -482,6 +507,9 @@ export default function UserProfileScreen() {
                     </div>
                   </div>
                 ))}
+                {listLoading && listPage > 1 && (
+                  <div className="py-2 text-gray-400 text-sm">Loading more…</div>
+                )}
               </div>
             )}
           </div>
