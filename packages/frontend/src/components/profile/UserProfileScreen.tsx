@@ -315,7 +315,7 @@ export default function UserProfileScreen() {
                           title: post.title,
                           imageUrl: post.imageUrl || post.postPictureUrl,
                           author: post.author || {
-                            name: post.authorId?.username || '',
+                            username: post.authorId?.username || '',
                             avatar: post.authorId?.profilePicture || '',
                           },
                           likes: post.likes ?? post.likesCount ?? 0,

@@ -5,6 +5,7 @@ import DefaultProfileIcon from './DefaultProfileIcon';
 import { search, SearchUser, SearchPost } from '../../services/searchService';
 import { useDebounce } from '../../hooks/useDebounce';
 import ProfileModal from './ProfileModal';
+import LogoutConfirmationModal from './LogoutConfirmationModal';
 
 interface HeaderProps {
   onPostSelect: (postId: string) => void;
@@ -23,6 +24,7 @@ const Header: React.FC<HeaderProps> = ({ onPostSelect }) => {
   const [hasMorePosts, setHasMorePosts] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -130,6 +132,16 @@ const Header: React.FC<HeaderProps> = ({ onPostSelect }) => {
   const handlePostClick = (postId: string) => {
     onPostSelect(postId);
     setShowResults(false);
+  };
+
+  const handleLogoutClick = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.reload();
   };
 
   const hasResults = searchResults?.users?.length > 0 || searchResults?.posts?.length > 0;
@@ -243,11 +255,7 @@ const Header: React.FC<HeaderProps> = ({ onPostSelect }) => {
           {/* Logout Button (Desktop) */}
           <button
             className="hidden md:block text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400"
-            onClick={() => {
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
-              window.location.reload();
-            }}
+            onClick={handleLogoutClick}
           >
             Logout
           </button>
@@ -284,6 +292,11 @@ const Header: React.FC<HeaderProps> = ({ onPostSelect }) => {
         </div>
       </div>
       <ProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
+      <LogoutConfirmationModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogoutConfirm}
+      />
     </header>
   );
 };

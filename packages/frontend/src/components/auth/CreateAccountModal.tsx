@@ -87,7 +87,6 @@ const CreateAccountModal: React.FC = () => {
     { label: 'Korean', icon: '🍜' },
     { label: 'Malaysian', icon: '🍲' },
     { label: 'Mexican', icon: '🌮' },
-    { label: 'Middle Eastern', icon: '��' },
     { label: 'Thai', icon: '🍤' },
     { label: 'Vietnamese', icon: '🍜' },
     { label: 'Western', icon: '🍔' },
