@@ -28,5 +28,5 @@ pnpm-debug.log*
 Thumbs.db
 
 # Script Files
-packages/
+#packages/
 
