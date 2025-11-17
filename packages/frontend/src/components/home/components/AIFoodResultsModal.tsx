@@ -280,7 +280,7 @@ const AIFoodResultsModal: React.FC<AIFoodResultsModalProps> = ({
                                         className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                                     >
                                         <div
-                                            className={`max-w-[80%] p-3 rounded-lg ${message.type === 'user'
+                                            className={`max-w-[80%] p-3 rounded-lg whitespace-pre-line ${message.type === 'user'
                                                 ? 'bg-orange-500 text-white'
                                                 : 'bg-gray-100 dark:bg-gray-700'
                                                 }`}
@@ -303,14 +303,19 @@ const AIFoodResultsModal: React.FC<AIFoodResultsModalProps> = ({
 
                             {/* Chat Input */}
                             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                                <div className="flex space-x-2">
-                                    <input
-                                        type="text"
+                                <div className="flex space-x-2 items-end">
+                                    <textarea
                                         value={chatMessage}
                                         onChange={(e) => setChatMessage(e.target.value)}
-                                        onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()}
-                                        placeholder="Ask about this food..."
-                                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                sendChatMessage();
+                                            }
+                                        }}
+                                        rows={2}
+                                        placeholder="Ask about this food... (Shift+Enter for a new line)"
+                                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
                                         disabled={isSendingMessage}
                                     />
                                     <button
